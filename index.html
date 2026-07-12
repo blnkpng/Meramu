@@ -1,0 +1,3968 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#006838">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MERAMU">
+  <meta name="description" content="Web app operasional MERAMU Kombucha untuk produksi, stok, transaksi, dan laporan.">
+
+  <title>MERAMU Kombucha</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="assets/icons/favicon-64.png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="assets/css/master.css?v=1.31.0">
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Lewati ke konten utama</a>
+
+  <div class="splash-screen" id="splashScreen" aria-hidden="true">
+    <div class="splash-content">
+      <div class="splash-logo-wrap">
+        <img class="splash-logo" src="assets/images/logo-meramu.png" alt="">
+      </div>
+      <h1 class="splash-title">MERAMU</h1>
+      <p class="splash-caption">Merawat rasa, mencatat proses.</p>
+      <div class="splash-loader"></div>
+    </div>
+  </div>
+
+  <main id="loginView" class="auth-layout" hidden>
+    <section class="auth-shell" aria-labelledby="loginTitle">
+      <aside class="auth-brand-panel" aria-hidden="true">
+        <div class="auth-brand-logo">
+          <img src="assets/images/logo-meramu.png" alt="">
+        </div>
+
+        <div class="auth-brand-message">
+          <h2>Setiap batch punya cerita.</h2>
+          <p>Kelola proses fermentasi, bottling, stok, dan penjualan dalam satu alur yang rapi.</p>
+        </div>
+
+        <div class="auth-brand-tag">
+          <span>●</span>
+          Sistem operasional MERAMU
+        </div>
+      </aside>
+
+      <div class="auth-form-panel">
+        <div class="auth-mobile-brand">
+          <div class="brand-mark">
+            <img src="assets/images/logo-meramu.png" alt="Logo MERAMU">
+          </div>
+          <div class="brand-copy">
+            <strong data-business-name>MERAMU</strong>
+            <span data-business-location>Meramu Center</span>
+          </div>
+        </div>
+
+        <div class="auth-heading">
+          <h1 id="loginTitle">Selamat datang</h1>
+          <p>Masuk untuk lanjut ke MERAMU.</p>
+        </div>
+
+        <form id="loginForm" class="form-stack" novalidate>
+          <label class="form-field">
+            <span class="form-label">Username</span>
+            <input
+              class="form-control"
+              type="text"
+              name="username"
+              autocomplete="username"
+              placeholder="Masukkan username"
+              required>
+          </label>
+
+          <label class="form-field">
+            <span class="form-label">Password</span>
+            <span class="input-wrap">
+              <input
+                class="form-control"
+                id="password"
+                type="password"
+                name="password"
+                autocomplete="current-password"
+                placeholder="Masukkan password"
+                required>
+              <button
+                class="password-toggle"
+                id="togglePassword"
+                type="button"
+                aria-label="Tampilkan password"
+                aria-pressed="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/>
+                  <circle cx="12" cy="12" r="2.8"/>
+                </svg>
+              </button>
+            </span>
+          </label>
+
+          <div class="auth-meta">
+            <label class="checkbox-row">
+              <input type="checkbox" name="remember" checked>
+              <span>Ingat perangkat ini</span>
+            </label>
+          </div>
+
+          <p class="form-error" id="loginError" role="alert"></p>
+
+          <button class="btn btn-primary btn-block" type="submit">Masuk</button>
+        </form>
+
+        <p class="auth-footnote">
+          <span data-app-version>Versi 1.31.0</span> · Akses internal MERAMU
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <div id="appView" class="app-shell" hidden>
+    <aside class="desktop-sidebar" aria-label="Navigasi utama">
+      <div class="sidebar-brand">
+        <div class="brand-mark">
+          <img src="assets/images/logo-meramu.png" alt="Logo MERAMU">
+        </div>
+        <div class="brand-copy">
+          <strong data-business-name>MERAMU</strong>
+          <span data-business-location>Meramu Center</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="sidebar-nav-item is-active" type="button" data-page-target="dashboard" aria-current="page">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" rx="2"/>
+            <rect x="14" y="3" width="7" height="7" rx="2"/>
+            <rect x="3" y="14" width="7" height="7" rx="2"/>
+            <rect x="14" y="14" width="7" height="7" rx="2"/>
+          </svg>
+          Dashboard
+        </button>
+
+        <button class="sidebar-nav-item" type="button" data-page-target="produksi">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M8 3h8M9 3v5l-4.5 8.2A3.2 3.2 0 0 0 7.3 21h9.4a3.2 3.2 0 0 0 2.8-4.8L15 8V3"/>
+            <path d="M7.3 14h9.4"/>
+          </svg>
+          Produksi
+        </button>
+
+        <button class="sidebar-nav-item" type="button" data-page-target="transaksi">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M4 5.5h16v13H4z"/>
+            <path d="M4 9h16M8 14h3"/>
+          </svg>
+          Transaksi
+        </button>
+
+        <button class="sidebar-nav-item" type="button" data-page-target="stok">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="m12 3 8 4-8 4-8-4 8-4Z"/>
+            <path d="m4 12 8 4 8-4M4 17l8 4 8-4"/>
+          </svg>
+          Stok
+        </button>
+
+        <button class="sidebar-nav-item" type="button" data-page-target="lainnya">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <circle cx="5" cy="12" r="1.5"/>
+            <circle cx="12" cy="12" r="1.5"/>
+            <circle cx="19" cy="12" r="1.5"/>
+          </svg>
+          Lainnya
+        </button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" data-user-initial>AD</div>
+        <div class="sidebar-user-copy">
+          <strong data-user-name>Administrator</strong>
+          <span data-user-role>Administrator</span>
+        </div>
+        <button class="sidebar-logout" id="logoutButton" type="button" aria-label="Keluar">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/>
+          </svg>
+        </button>
+      </div>
+    </aside>
+
+    <main class="app-main" id="mainContent" tabindex="-1">
+      <header class="mobile-topbar">
+        <div class="topbar-copy">
+          <span class="eyebrow" data-current-date>Hari ini</span>
+          <h1 class="page-title" data-current-page>Dashboard</h1>
+        </div>
+        <button class="avatar-button" id="mobileAvatar" type="button" aria-label="Buka profil">
+          <span data-user-initial>AD</span>
+        </button>
+      </header>
+
+      <div class="page-content">
+        <header class="desktop-page-header">
+          <div class="desktop-page-title">
+            <h1 data-current-page>Dashboard</h1>
+            <p><span data-greeting>Selamat datang</span>, <span data-user-name>Administrator</span> · <span data-current-date>Hari ini</span></p>
+          </div>
+        </header>
+
+        <section class="page-section is-active" data-page="dashboard" aria-label="Dashboard">
+          <div class="dashboard-board dashboard-final-board">
+            <div class="dashboard-overview-grid dashboard-final-overview">
+              <article class="dashboard-hero dashboard-summary-card dashboard-role-hero" id="dashboardRoleHero">
+                <div class="hero-content">
+                  <div class="hero-top-row">
+                    <p class="hero-kicker" id="dashboardHeroKicker">Ringkasan operasional</p>
+                    <span class="hero-period" id="dashboardHeroPeriod">Hari ini</span>
+                  </div>
+
+                  <h2 class="dashboard-hero-title" id="dashboardHeroTitle">Kinerja MERAMU hari ini</h2>
+                  <p class="dashboard-hero-subtitle" id="dashboardHeroSubtitle">Memuat data terbaru dari Spreadsheet MERAMU.</p>
+
+                  <span class="dashboard-hero-value-label" id="dashboardHeroValueLabel">Nilai utama</span>
+                  <p class="hero-value dashboard-live-value" id="dashboardHeroValue">Rp0</p>
+
+                  <div class="dashboard-hero-stat-grid" id="dashboardHeroStats">
+                    <div><span>Memuat</span><strong>-</strong></div>
+                    <div><span>Memuat</span><strong>-</strong></div>
+                    <div><span>Memuat</span><strong>-</strong></div>
+                    <div><span>Memuat</span><strong>-</strong></div>
+                  </div>
+                </div>
+              </article>
+
+              <section class="card dashboard-panel dashboard-attention-panel dashboard-final-attention">
+                <div class="dashboard-panel-heading">
+                  <div>
+                    <span class="dashboard-panel-kicker">Prioritas operasional</span>
+                    <h2>Perlu perhatian</h2>
+                    <p>Urutan tindakan yang paling penting saat ini.</p>
+                  </div>
+                  <span class="status-chip warning" id="dashboardAttentionCount">0 prioritas</span>
+                </div>
+
+                <div class="dashboard-attention-list attention-card" id="dashboardAttentionList">
+                  <div class="list-row">
+                    <span class="list-copy">
+                      <strong>Memuat prioritas...</strong>
+                      <span>Mengambil stok dan kondisi batch terbaru.</span>
+                    </span>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <section>
+              <div class="section-heading dashboard-section-heading">
+                <div>
+                  <h2 id="dashboardKpiTitle">Ringkasan hari ini</h2>
+                  <p id="dashboardKpiCaption">Informasi utama sesuai akses akun.</p>
+                </div>
+                <span class="dashboard-sync-chip" id="dashboardGeneratedAt">Memuat data...</span>
+              </div>
+              <div class="dashboard-role-kpi-grid" id="dashboardRoleKpiGrid">
+                <article class="card dashboard-role-kpi-card"><span>Memuat</span><strong>-</strong><small>Menyiapkan data</small></article>
+              </div>
+            </section>
+
+            <div class="dashboard-main-grid">
+              <section class="card dashboard-panel dashboard-actions-panel dashboard-final-actions">
+                <div class="dashboard-panel-heading">
+                  <div>
+                    <span class="dashboard-panel-kicker">Operasional</span>
+                    <h2>Aksi cepat</h2>
+                    <p id="dashboardActionCaption">Aktivitas yang tersedia untuk akun ini.</p>
+                  </div>
+                </div>
+
+                <div class="action-grid dashboard-action-grid dashboard-final-action-grid" id="dashboardActionGrid">
+                  <div class="dashboard-data-placeholder">Memuat aktivitas...</div>
+                </div>
+              </section>
+
+              <section class="card dashboard-panel dashboard-chart-panel">
+                <div class="dashboard-panel-heading">
+                  <div>
+                    <span class="dashboard-panel-kicker">Tujuh hari terakhir</span>
+                    <h2 id="dashboardTrendTitle">Pergerakan operasional</h2>
+                    <p id="dashboardTrendCaption">Memuat data grafik...</p>
+                  </div>
+                  <div class="dashboard-chart-legend" id="dashboardTrendLegend"></div>
+                </div>
+
+                <div class="dashboard-bar-chart" id="dashboardTrendChart">
+                  <div class="dashboard-data-placeholder">Memuat grafik...</div>
+                </div>
+              </section>
+            </div>
+
+            <div class="dashboard-secondary-grid">
+              <section class="card dashboard-panel dashboard-activity-panel">
+                <div class="dashboard-panel-heading">
+                  <div>
+                    <span class="dashboard-panel-kicker">Jurnal terbaru</span>
+                    <h2>Aktivitas terbaru</h2>
+                    <p>Transaksi dan produksi yang baru dicatat.</p>
+                  </div>
+                  <button class="section-text-action" type="button" id="dashboardActivityHistoryButton">Lihat riwayat</button>
+                </div>
+
+                <div class="dashboard-recent-list" id="dashboardRecentActivityList">
+                  <div class="dashboard-data-placeholder">Memuat aktivitas terbaru...</div>
+                </div>
+              </section>
+
+              <section class="card dashboard-panel dashboard-stock-panel">
+                <div class="dashboard-panel-heading">
+                  <div>
+                    <span class="dashboard-panel-kicker">Produk siap jual</span>
+                    <h2>Stok produk</h2>
+                    <p>Jumlah aktual produk dan starter.</p>
+                  </div>
+                  <button class="section-text-action" type="button" data-open-stock-group="PRODUK">Lihat stok</button>
+                </div>
+
+                <div class="dashboard-product-list" id="dashboardProductStockList">
+                  <div class="dashboard-product-loading">Memuat stok produk...</div>
+                </div>
+              </section>
+            </div>
+
+            <div class="dashboard-insights-grid">
+              <section class="card dashboard-panel dashboard-ranking-panel">
+                <div class="dashboard-panel-heading">
+                  <div>
+                    <span class="dashboard-panel-kicker" id="dashboardRankingKicker">Penjualan bulan ini</span>
+                    <h2 id="dashboardRankingTitle">Produk terlaris</h2>
+                    <p id="dashboardRankingCaption">Peringkat berdasarkan jumlah produk.</p>
+                  </div>
+                </div>
+                <div class="dashboard-ranking-list" id="dashboardRankingList">
+                  <div class="dashboard-data-placeholder">Memuat peringkat...</div>
+                </div>
+              </section>
+
+              <section class="card dashboard-panel dashboard-variant-panel">
+                <div class="dashboard-panel-heading">
+                  <div>
+                    <span class="dashboard-panel-kicker" id="dashboardVariantKicker">Produksi bulan ini</span>
+                    <h2 id="dashboardVariantTitle">Hasil per varian</h2>
+                    <p id="dashboardVariantCaption">Hasil bottling berdasarkan varian.</p>
+                  </div>
+                </div>
+                <div class="dashboard-variant-list" id="dashboardVariantList">
+                  <div class="dashboard-data-placeholder">Memuat komposisi...</div>
+                </div>
+              </section>
+            </div>
+
+            <section class="card dashboard-panel dashboard-batch-panel">
+              <div class="dashboard-panel-heading">
+                <div>
+                  <span class="dashboard-panel-kicker">Produksi berjalan</span>
+                  <h2>Batch aktif</h2>
+                  <p>Pantau usia dan kondisi fermentasi terbaru.</p>
+                </div>
+                <button class="section-text-action" type="button" data-quick-page="produksi">Lihat semua</button>
+              </div>
+
+              <div class="batch-grid dashboard-batch-grid" id="dashboardBatchGrid">
+                <div class="card empty-state"><p>Memuat batch aktif...</p></div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="produksi" aria-label="Produksi">
+          <div class="section-stack">
+            <section>
+              <div class="section-heading">
+                <div>
+                  <h2>Alur produksi</h2>
+                  <p>Dari pembuatan F1 sampai produk siap dijual.</p>
+                </div>
+              </div>
+
+              <div class="module-grid">
+                <button class="module-card" type="button" data-open-batch-form>
+                  <span class="module-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path d="M8 3h8M9 3v5l-4.5 8.2A3.2 3.2 0 0 0 7.3 21h9.4a3.2 3.2 0 0 0 2.8-4.8L15 8V3"/>
+                      <path d="M8 15h8"/>
+                    </svg>
+                  </span>
+                  <span class="module-copy"><strong>Buat Batch F1</strong><span>Mulai produksi kombucha baru</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-fermentation>
+                  <span class="module-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <circle cx="12" cy="12" r="8"/>
+                      <path d="M12 8v4l2.5 2"/>
+                    </svg>
+                  </span>
+                  <span class="module-copy"><strong>Pantau Fermentasi</strong><span>Catat pH, Brix, dan kondisi batch</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-finish>
+                  <span class="module-icon warning">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path d="m5 12 4 4L19 6"/>
+                    </svg>
+                  </span>
+                  <span class="module-copy"><strong>Selesaikan F1</strong><span>Catat hasil akhir dan susut</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-bottling="ORIGINAL">
+                  <span class="module-icon original">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path d="M9 3h6v4l2 3v10H7V10l2-3V3Z"/>
+                    </svg>
+                  </span>
+                  <span class="module-copy"><strong>Bottling Original</strong><span>Kemas varian Original</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-bottling="TELANG">
+                  <span class="module-icon telang">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path d="M9 3h6v4l2 3v10H7V10l2-3V3Z"/>
+                    </svg>
+                  </span>
+                  <span class="module-copy"><strong>Bottling Telang</strong><span>Kemas varian Telang</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-bottling="ROSELLA">
+                  <span class="module-icon rosella">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path d="M9 3h6v4l2 3v10H7V10l2-3V3Z"/>
+                    </svg>
+                  </span>
+                  <span class="module-copy"><strong>Bottling Rosella</strong><span>Kemas varian Rosella</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-bottling="STARTER">
+                  <span class="module-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path d="M12 3c3.5 4.4 6 7.2 6 10.3A6 6 0 0 1 6 13.3C6 10.2 8.5 7.4 12 3Z"/>
+                    </svg>
+                  </span>
+                  <span class="module-copy"><strong>Simpan Starter</strong><span>Masukkan starter untuk batch berikutnya</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-production-history>
+                  <span class="module-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path d="M4 5h16v15H4zM8 3v4M16 3v4M4 9h16"/>
+                    </svg>
+                  </span>
+                  <span class="module-copy"><strong>Riwayat Produksi</strong><span>Lihat batch dan bottling terdahulu</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+              </div>
+            </section>
+
+            <div class="production-latest-grid">
+              <section class="production-latest-panel">
+                <div class="section-heading">
+                  <div>
+                    <h2>Batch terbaru</h2>
+                    <p>Batch aktif dan siap bottling.</p>
+                  </div>
+                  <button class="section-text-action" type="button" data-open-production-history>
+                    Lihat semua
+                  </button>
+                </div>
+
+                <div class="batch-grid production-latest-list" id="productionBatchGrid">
+                  <div class="card empty-state"><p>Memuat batch terbaru...</p></div>
+                </div>
+              </section>
+
+              <section class="production-latest-panel">
+                <div class="section-heading">
+                  <div>
+                    <h2>Bottling terbaru</h2>
+                    <p>Produk dan starter yang baru diproses.</p>
+                  </div>
+                  <button class="section-text-action" type="button" data-open-production-history>
+                    Lihat semua
+                  </button>
+                </div>
+
+                <div class="bottling-history-grid production-latest-list" id="productionBottlingGrid">
+                  <div class="card empty-state"><p>Memuat riwayat bottling...</p></div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="riwayat-produksi" aria-label="Riwayat Produksi">
+          <div class="section-stack production-history-page">
+            <section class="history-page-toolbar">
+              <button class="btn btn-secondary history-back-button" type="button" data-back-production>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                  <path d="m15 18-6-6 6-6"/>
+                </svg>
+                Kembali ke Produksi
+              </button>
+              <p>Arsip lengkap perjalanan batch, pemeriksaan fermentasi, bottling, dan starter.</p>
+            </section>
+
+            <section class="production-history-kpi-grid">
+              <article class="card history-kpi-card">
+                <span>Total batch</span>
+                <strong id="historyTotalBatch">0</strong>
+                <small>Seluruh batch F1</small>
+              </article>
+              <article class="card history-kpi-card">
+                <span>Sedang fermentasi</span>
+                <strong id="historyActiveBatch">0</strong>
+                <small>Batch aktif dan perlu cek</small>
+              </article>
+              <article class="card history-kpi-card">
+                <span>Siap bottling</span>
+                <strong id="historyReadyBatch">0</strong>
+                <small>F1 yang sudah selesai</small>
+              </article>
+              <article class="card history-kpi-card">
+                <span>Produk dihasilkan</span>
+                <strong id="historyProductOutput">0</strong>
+                <small id="historyStarterOutput">Starter 0 ml</small>
+              </article>
+            </section>
+
+            <section class="card production-history-filter-card">
+              <div class="history-tabs" role="tablist" aria-label="Jenis riwayat">
+                <button class="history-tab is-active" type="button" data-history-tab="semua">Semua</button>
+                <button class="history-tab" type="button" data-history-tab="batch">Batch F1</button>
+                <button class="history-tab" type="button" data-history-tab="fermentasi">Pengecekan</button>
+                <button class="history-tab" type="button" data-history-tab="bottling">Bottling</button>
+                <button class="history-tab" type="button" data-history-tab="starter">Starter</button>
+              </div>
+
+              <div class="history-filter-grid">
+                <label class="form-field history-search-field">
+                  <span class="form-label">Cari riwayat</span>
+                  <span class="history-search-wrap">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <circle cx="11" cy="11" r="7"/>
+                      <path d="m16 16 4 4"/>
+                    </svg>
+                    <input class="form-control" id="productionHistorySearch" type="search" placeholder="Batch ID, Bottling ID, atau varian">
+                  </span>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Tanggal awal</span>
+                  <input class="form-control" id="productionHistoryStartDate" type="date">
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Tanggal akhir</span>
+                  <input class="form-control" id="productionHistoryEndDate" type="date">
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Status atau varian</span>
+                  <select class="form-control" id="productionHistoryStatus">
+                    <option value="">Semua status</option>
+                    <option value="FERMENTASI">Fermentasi</option>
+                    <option value="SIAP CEK">Siap cek</option>
+                    <option value="SIAP BOTTLING">Siap bottling</option>
+                    <option value="HABIS">Batch habis</option>
+                    <option value="ORIGINAL">Original</option>
+                    <option value="TELANG">Telang</option>
+                    <option value="ROSELLA">Rosella</option>
+                    <option value="STARTER">Starter</option>
+                  </select>
+                </label>
+
+                <button class="btn btn-secondary history-reset-button" id="resetProductionHistoryFilters" type="button">
+                  Reset filter
+                </button>
+              </div>
+            </section>
+
+            <section>
+              <div class="section-heading history-result-heading">
+                <div>
+                  <h2>Aktivitas produksi</h2>
+                  <p id="productionHistoryCaption">Memuat riwayat produksi...</p>
+                </div>
+                <span class="status-chip info" id="productionHistoryCount">0 data</span>
+              </div>
+
+              <div class="production-history-list" id="productionHistoryList">
+                <div class="card empty-state">
+                  <p>Memuat riwayat produksi...</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="transaksi" aria-label="Transaksi">
+          <div class="section-stack">
+            <section>
+              <div class="section-heading">
+                <div>
+                  <h2>Transaksi</h2>
+                  <p>Catat arus barang dan kas dengan satu alur.</p>
+                </div>
+              </div>
+
+              <div class="module-grid">
+                <button class="module-card" type="button" data-open-sale>
+                  <span class="module-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5.5h16v13H4z"/><path d="M4 9h16M8 14h3"/></svg>
+                  </span>
+                  <span class="module-copy"><strong>Penjualan</strong><span>Kurangi stok dan catat pemasukan</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-purchase>
+                  <span class="module-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 5h2l2 11h10l2-8H6"/><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
+                  </span>
+                  <span class="module-copy"><strong>Pembelian Bahan</strong><span>Tambah stok dan catat kas keluar</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-expense>
+                  <span class="module-icon warning">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5.5h16v13H4z"/><path d="M8 12h8M12 8v8"/></svg>
+                  </span>
+                  <span class="module-copy"><strong>Pengeluaran</strong><span>Biaya operasional tanpa stok</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-stock-usage>
+                  <span class="module-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4Z"/><path d="m4 12 8 4 8-4M4 17l8 4 8-4"/></svg>
+                  </span>
+                  <span class="module-copy"><strong>Pemakaian Bahan</strong><span>Barang rusak, tester, atau operasional</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-transaction-history>
+                  <span class="module-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v15H4zM8 3v4M16 3v4M4 9h16"/></svg>
+                  </span>
+                  <span class="module-copy"><strong>Riwayat Transaksi</strong><span>Filter berdasarkan tanggal dan jenis</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+              </div>
+            </section>
+
+            <section>
+              <div class="section-heading">
+                <div>
+                  <h2>Aktivitas terbaru</h2>
+                  <p>Transaksi terakhir dari database MERAMU.</p>
+                </div>
+              </div>
+              <div class="card list-card dynamic-list-card" id="transactionActivityList">
+                <div class="list-loading">Memuat aktivitas transaksi...</div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="riwayat-transaksi" aria-label="Riwayat Transaksi">
+          <div class="section-stack transaction-history-page">
+            <section class="transaction-history-toolbar">
+              <button class="btn btn-secondary transaction-history-back-button" type="button" data-back-transaction-history>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                  <path d="m15 18-6-6 6-6"/>
+                </svg>
+                Kembali ke Transaksi
+              </button>
+              <p>Telusuri seluruh arus barang dan kas berdasarkan nomor transaksi.</p>
+            </section>
+
+            <section class="transaction-history-kpi-grid">
+              <article class="card transaction-history-kpi-card">
+                <span>Total transaksi</span>
+                <strong id="transactionHistoryTotal">0</strong>
+                <small>Sesuai filter aktif</small>
+              </article>
+
+              <article class="card transaction-history-kpi-card is-income">
+                <span>Total pemasukan</span>
+                <strong id="transactionHistoryCashIn">Rp0</strong>
+                <small>Penjualan dan kas masuk</small>
+              </article>
+
+              <article class="card transaction-history-kpi-card is-expense">
+                <span>Total pengeluaran</span>
+                <strong id="transactionHistoryCashOut">Rp0</strong>
+                <small>Pembelian dan operasional</small>
+              </article>
+
+              <article class="card transaction-history-kpi-card is-stock-in">
+                <span>Nilai stok masuk</span>
+                <strong id="transactionHistoryStockIn">Rp0</strong>
+                <small>Stok awal, pembelian, produksi</small>
+              </article>
+
+              <article class="card transaction-history-kpi-card is-stock-out">
+                <span>Nilai stok keluar</span>
+                <strong id="transactionHistoryStockOut">Rp0</strong>
+                <small>HPP, pemakaian, dan koreksi</small>
+              </article>
+
+              <article class="card transaction-history-kpi-card is-cancelled">
+                <span>Transaksi dibatalkan</span>
+                <strong id="transactionHistoryCancelled">0</strong>
+                <small>Jurnal asli tetap tersimpan</small>
+              </article>
+            </section>
+
+            <section class="card transaction-history-filter-card">
+              <div class="transaction-history-filter-grid">
+                <label class="form-field transaction-history-search-field">
+                  <span class="form-label">Cari transaksi</span>
+                  <span class="transaction-history-search-wrap">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <circle cx="11" cy="11" r="7"/>
+                      <path d="m16 16 4 4"/>
+                    </svg>
+                    <input
+                      class="form-control"
+                      id="transactionHistorySearch"
+                      type="search"
+                      placeholder="Nomor, item, supplier, pelanggan, atau catatan"
+                    >
+                  </span>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Tanggal awal</span>
+                  <input class="form-control" id="transactionHistoryStartDate" type="date">
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Tanggal akhir</span>
+                  <input class="form-control" id="transactionHistoryEndDate" type="date">
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Jenis transaksi</span>
+                  <select class="form-control" id="transactionHistoryType">
+                    <option value="">Semua jenis</option>
+                    <option value="STOK_AWAL">Stok Awal</option>
+                    <option value="PEMBELIAN">Pembelian Bahan</option>
+                    <option value="PRODUKSI_F1">Produksi Batch F1</option>
+                    <option value="BOTTLING">Bottling</option>
+                    <option value="PENJUALAN">Penjualan</option>
+                    <option value="PENGELUARAN">Pengeluaran</option>
+                    <option value="PEMAKAIAN">Pemakaian Bahan</option>
+                    <option value="STOK_OPNAME">Stok Opname</option>
+                    <option value="PEMBATALAN">Pembatalan</option>
+                  </select>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Status transaksi</span>
+                  <select class="form-control" id="transactionHistoryStatus">
+                    <option value="">Semua status</option>
+                    <option value="AKTIF">Aktif</option>
+                    <option value="DIBATALKAN">Dibatalkan</option>
+                    <option value="PEMBATALAN">Jurnal Pembatalan</option>
+                  </select>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Metode pembayaran</span>
+                  <select class="form-control" id="transactionHistoryMethod">
+                    <option value="">Semua metode</option>
+                    <option value="CASH">Cash</option>
+                    <option value="TRANSFER">Transfer</option>
+                    <option value="QRIS">QRIS</option>
+                    <option value="DEBIT">Debit</option>
+                    <option value="LAINNYA">Lainnya</option>
+                    <option value="-">Tanpa arus kas</option>
+                  </select>
+                </label>
+
+                <button class="btn btn-secondary transaction-history-reset-button" id="resetTransactionHistoryFilters" type="button">
+                  Reset filter
+                </button>
+              </div>
+            </section>
+
+            <section>
+              <div class="section-heading transaction-history-result-heading">
+                <div>
+                  <h2>Daftar transaksi</h2>
+                  <p id="transactionHistoryCaption">Memuat riwayat transaksi...</p>
+                </div>
+                <span class="status-chip info" id="transactionHistoryCount">0 transaksi</span>
+              </div>
+
+              <div class="transaction-history-list" id="transactionHistoryList">
+                <div class="card empty-state">
+                  <p>Memuat riwayat transaksi...</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="stok" aria-label="Stok">
+          <div class="section-stack">
+            <section>
+              <div class="section-heading">
+                <div><h2>Kontrol stok</h2><p>Bahan, kemasan, produk, dan penyesuaian fisik.</p></div>
+              </div>
+
+              <div class="module-grid">
+                <button class="module-card" type="button" data-open-stock-group="BAHAN">
+                  <span class="module-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 8 4-8 4-8-4 8-4Z"/><path d="m4 12 8 4 8-4"/></svg></span>
+                  <span class="module-copy"><strong>Stok Bahan</strong><span>Teh, air, gula, telang, rosella</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-stock-group="KEMASAN">
+                  <span class="module-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 8 4-8 4-8-4 8-4Z"/><path d="m4 12 8 4 8-4M4 17l8 4 8-4"/></svg></span>
+                  <span class="module-copy"><strong>Stok Kemasan</strong><span>Botol, stiker, kardus, bubble wrap</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-stock-group="PRODUK">
+                  <span class="module-icon original"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3h6v4l2 3v10H7V10l2-3V3Z"/></svg></span>
+                  <span class="module-copy"><strong>Stok Produk</strong><span>Produk jadi dan starter</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-opening-stock>
+                  <span class="module-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></span>
+                  <span class="module-copy"><strong>Stok Awal</strong><span>Isi saldo awal sebelum operasional</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-stock-opname>
+                  <span class="module-icon warning"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg></span>
+                  <span class="module-copy"><strong>Stok Opname</strong><span>Sesuaikan stok sistem dan fisik</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+              </div>
+            </section>
+
+            <section>
+              <div class="section-heading">
+                <div>
+                  <h2>Stok perlu perhatian</h2>
+                  <p>Item habis atau sudah mencapai batas minimum.</p>
+                </div>
+                <button class="section-text-action" type="button" data-open-purchase>
+                  Catat pembelian
+                </button>
+              </div>
+              <div class="card list-card dynamic-list-card" id="stockAttentionList">
+                <div class="list-loading">Memuat kondisi stok...</div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="stok-detail" aria-label="Rincian Stok">
+          <div class="section-stack stock-detail-page">
+            <section class="stock-detail-toolbar">
+              <div class="stock-detail-toolbar-left">
+                <button class="btn btn-secondary stock-detail-back-button" type="button" data-back-stock-detail>
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                    <path d="m15 18-6-6 6-6"/>
+                  </svg>
+                  Kembali ke Stok
+                </button>
+
+                <div>
+                  <span class="eyebrow" id="stockDetailEyebrow">Kontrol persediaan</span>
+                  <h2 id="stockDetailTitle">Stok Bahan</h2>
+                  <p id="stockDetailDescription">Teh, gula, air, telang, rosella, dan bahan produksi.</p>
+                </div>
+              </div>
+
+              <button class="btn btn-primary" id="stockDetailPrimaryAction" type="button">
+                Catat Pembelian
+              </button>
+            </section>
+
+            <section class="stock-detail-kpi-grid">
+              <article class="card stock-detail-kpi-card">
+                <span>Total item aktif</span>
+                <strong id="stockDetailTotalItems">0</strong>
+                <small id="stockDetailTotalCaption">Memuat item...</small>
+              </article>
+
+              <article class="card stock-detail-kpi-card is-value">
+                <span>Nilai persediaan</span>
+                <strong id="stockDetailStockValue">Rp0</strong>
+                <small>Stok × HPP rata-rata</small>
+              </article>
+
+              <article class="card stock-detail-kpi-card is-low">
+                <span>Stok menipis</span>
+                <strong id="stockDetailLowItems">0</strong>
+                <small>Mencapai batas minimum</small>
+              </article>
+
+              <article class="card stock-detail-kpi-card is-out">
+                <span>Stok habis</span>
+                <strong id="stockDetailOutItems">0</strong>
+                <small>Perlu tindakan segera</small>
+              </article>
+            </section>
+
+            <section class="card stock-detail-filter-card">
+              <div class="stock-detail-filter-grid">
+                <label class="form-field stock-detail-search-field">
+                  <span class="form-label">Cari item</span>
+                  <span class="stock-detail-search-wrap">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <circle cx="11" cy="11" r="7"/>
+                      <path d="m16 16 4 4"/>
+                    </svg>
+                    <input class="form-control" id="stockDetailSearch" type="search" placeholder="Kode, nama, atau kategori">
+                  </span>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Status stok</span>
+                  <select class="form-control" id="stockDetailStatus">
+                    <option value="">Semua status</option>
+                    <option value="AMAN">Aman</option>
+                    <option value="MENIPIS">Menipis</option>
+                    <option value="HABIS">Habis</option>
+                  </select>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Kategori</span>
+                  <select class="form-control" id="stockDetailCategory">
+                    <option value="">Semua kategori</option>
+                  </select>
+                </label>
+
+                <button class="btn btn-secondary stock-detail-reset-button" id="resetStockDetailFilters" type="button">
+                  Reset
+                </button>
+              </div>
+            </section>
+
+            <section>
+              <div class="section-heading stock-detail-list-heading">
+                <div>
+                  <h2 id="stockDetailListTitle">Daftar bahan</h2>
+                  <p id="stockDetailListCaption">Memuat persediaan...</p>
+                </div>
+                <span class="status-chip info" id="stockDetailCount">0 item</span>
+              </div>
+
+              <div class="stock-detail-list" id="stockDetailList">
+                <div class="card empty-state">
+                  <p>Memuat rincian stok...</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="laporan" aria-label="Laporan Usaha">
+          <div class="section-stack reports-page">
+            <section class="reports-toolbar">
+              <div class="reports-toolbar-copy">
+                <span class="eyebrow">Analisis operasional</span>
+                <h2>Laporan Usaha MERAMU</h2>
+                <p>Penjualan, laba rugi, persediaan, dan produksi dalam satu halaman.</p>
+              </div>
+
+              <div class="reports-toolbar-actions">
+                <span class="reports-source-status" id="reportsSourceStatus">Menyiapkan data laporan...</span>
+                <button class="btn btn-secondary" id="exportReportsCsv" type="button">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path d="M12 3v12M7 10l5 5 5-5"/>
+                    <path d="M5 20h14"/>
+                  </svg>
+                  Ekspor CSV
+                </button>
+                <button class="btn btn-secondary" id="printReports" type="button">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path d="M7 9V4h10v5M7 17v3h10v-3"/>
+                    <path d="M5 9h14a2 2 0 0 1 2 2v6h-4v-4H7v4H3v-6a2 2 0 0 1 2-2Z"/>
+                  </svg>
+                  Cetak
+                </button>
+              </div>
+            </section>
+
+            <section class="card reports-filter-card">
+              <div class="reports-period-presets" role="group" aria-label="Periode cepat">
+                <button class="reports-period-button" type="button" data-report-preset="hari-ini">Hari ini</button>
+                <button class="reports-period-button" type="button" data-report-preset="7-hari">7 hari</button>
+                <button class="reports-period-button is-active" type="button" data-report-preset="bulan-ini">Bulan ini</button>
+                <button class="reports-period-button" type="button" data-report-preset="bulan-lalu">Bulan lalu</button>
+                <button class="reports-period-button" type="button" data-report-preset="tahun-ini">Tahun ini</button>
+                <button class="reports-period-button" type="button" data-report-preset="semua">Semua data</button>
+              </div>
+
+              <div class="reports-filter-grid">
+                <label class="form-field">
+                  <span class="form-label">Tanggal awal</span>
+                  <input class="form-control" id="reportsStartDate" type="date">
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Tanggal akhir</span>
+                  <input class="form-control" id="reportsEndDate" type="date">
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Kategori item</span>
+                  <select class="form-control" id="reportsCategory">
+                    <option value="">Semua kategori</option>
+                  </select>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Varian produk</span>
+                  <select class="form-control" id="reportsVariant">
+                    <option value="">Semua varian</option>
+                    <option value="ORIGINAL">Original</option>
+                    <option value="TELANG">Telang</option>
+                    <option value="ROSELLA">Rosella</option>
+                    <option value="STARTER">Starter</option>
+                  </select>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Metode pembayaran</span>
+                  <select class="form-control" id="reportsMethod">
+                    <option value="">Semua metode</option>
+                    <option value="CASH">Cash</option>
+                    <option value="TRANSFER">Transfer</option>
+                    <option value="QRIS">QRIS</option>
+                    <option value="DEBIT">Debit</option>
+                    <option value="LAINNYA">Lainnya</option>
+                  </select>
+                </label>
+
+                <button class="btn btn-secondary reports-reset-button" id="resetReportsFilters" type="button">
+                  Reset
+                </button>
+              </div>
+            </section>
+
+            <nav class="reports-tabs" role="tablist" aria-label="Jenis laporan">
+              <button class="reports-tab is-active" type="button" role="tab" aria-selected="true" data-report-tab="ringkasan">
+                Ringkasan
+              </button>
+              <button class="reports-tab" type="button" role="tab" aria-selected="false" data-report-tab="penjualan">
+                Penjualan
+              </button>
+              <button class="reports-tab" type="button" role="tab" aria-selected="false" data-report-tab="persediaan">
+                Persediaan
+              </button>
+              <button class="reports-tab" type="button" role="tab" aria-selected="false" data-report-tab="produksi">
+                Produksi
+              </button>
+            </nav>
+
+            <section class="reports-kpi-grid" id="reportsKpiGrid">
+              <article class="card reports-kpi-card" data-report-kpi-index="0">
+                <span class="reports-kpi-label">Omzet</span>
+                <strong class="reports-kpi-value">Rp0</strong>
+                <small class="reports-kpi-caption">Memuat data...</small>
+              </article>
+              <article class="card reports-kpi-card" data-report-kpi-index="1">
+                <span class="reports-kpi-label">HPP</span>
+                <strong class="reports-kpi-value">Rp0</strong>
+                <small class="reports-kpi-caption">Memuat data...</small>
+              </article>
+              <article class="card reports-kpi-card" data-report-kpi-index="2">
+                <span class="reports-kpi-label">Laba kotor</span>
+                <strong class="reports-kpi-value">Rp0</strong>
+                <small class="reports-kpi-caption">Memuat data...</small>
+              </article>
+              <article class="card reports-kpi-card" data-report-kpi-index="3">
+                <span class="reports-kpi-label">Pengeluaran</span>
+                <strong class="reports-kpi-value">Rp0</strong>
+                <small class="reports-kpi-caption">Memuat data...</small>
+              </article>
+              <article class="card reports-kpi-card" data-report-kpi-index="4">
+                <span class="reports-kpi-label">Laba operasional</span>
+                <strong class="reports-kpi-value">Rp0</strong>
+                <small class="reports-kpi-caption">Memuat data...</small>
+              </article>
+              <article class="card reports-kpi-card" data-report-kpi-index="5">
+                <span class="reports-kpi-label">Margin</span>
+                <strong class="reports-kpi-value">0%</strong>
+                <small class="reports-kpi-caption">Memuat data...</small>
+              </article>
+            </section>
+
+            <section class="reports-chart-grid">
+              <article class="card reports-chart-card">
+                <div class="reports-card-heading">
+                  <div>
+                    <span class="eyebrow" id="reportsTrendKicker">Tren periode</span>
+                    <h3 id="reportsTrendTitle">Omzet dan laba operasional</h3>
+                  </div>
+                  <div class="reports-chart-legend" id="reportsTrendLegend"></div>
+                </div>
+                <div class="reports-line-chart" id="reportsTrendChart">
+                  <div class="reports-empty-chart">Memuat grafik...</div>
+                </div>
+              </article>
+
+              <article class="card reports-chart-card">
+                <div class="reports-card-heading">
+                  <div>
+                    <span class="eyebrow" id="reportsBreakdownKicker">Komposisi</span>
+                    <h3 id="reportsBreakdownTitle">Produk terlaris</h3>
+                  </div>
+                </div>
+                <div class="reports-ranking-list" id="reportsBreakdownChart">
+                  <div class="reports-empty-chart">Memuat peringkat...</div>
+                </div>
+              </article>
+            </section>
+
+            <section class="card reports-table-card">
+              <div class="reports-card-heading reports-table-heading">
+                <div>
+                  <span class="eyebrow" id="reportsTableKicker">Rincian laporan</span>
+                  <h3 id="reportsTableTitle">Laba rugi per periode</h3>
+                  <p id="reportsTableCaption">Data akan mengikuti filter dan jenis laporan.</p>
+                </div>
+                <span class="status-chip info" id="reportsTableCount">0 baris</span>
+              </div>
+
+              <div class="reports-table-wrap">
+                <table class="reports-table">
+                  <thead id="reportsTableHead"></thead>
+                  <tbody id="reportsTableBody"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="reports-footnote" id="reportsFootnote">
+              Laporan dihitung dari jurnal transaksi, batch, bottling, dan stok aktif.
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="master-item" aria-label="Master Item dan Harga">
+          <div class="section-stack master-item-page">
+            <section class="master-item-toolbar">
+              <div class="master-item-toolbar-left">
+                <button class="btn btn-secondary" type="button" data-back-master-items>
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                    <path d="m15 18-6-6 6-6"/>
+                  </svg>
+                  Kembali ke Lainnya
+                </button>
+
+                <div>
+                  <span class="eyebrow">Administrasi persediaan</span>
+                  <h2>Master Item & Harga</h2>
+                  <p>Kelola bahan, kemasan, produk, starter, harga jual, dan batas minimum stok.</p>
+                </div>
+              </div>
+
+              <button class="btn btn-primary" id="addMasterItemButton" type="button">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+                Tambah Item
+              </button>
+            </section>
+
+            <section class="master-item-kpi-grid">
+              <article class="card master-item-kpi-card">
+                <span>Total item</span>
+                <strong id="masterItemTotal">0</strong>
+                <small>Aktif dan nonaktif</small>
+              </article>
+
+              <article class="card master-item-kpi-card is-active">
+                <span>Item aktif</span>
+                <strong id="masterItemActiveCount">0</strong>
+                <small>Digunakan dalam operasional</small>
+              </article>
+
+              <article class="card master-item-kpi-card is-inactive">
+                <span>Item nonaktif</span>
+                <strong id="masterItemInactive">0</strong>
+                <small>Tidak muncul pada form transaksi</small>
+              </article>
+
+              <article class="card master-item-kpi-card is-low">
+                <span>Perlu perhatian</span>
+                <strong id="masterItemAttention">0</strong>
+                <small>Menipis atau habis</small>
+              </article>
+
+              <article class="card master-item-kpi-card is-product">
+                <span>Produk jual</span>
+                <strong id="masterItemProducts">0</strong>
+                <small>Memiliki harga penjualan</small>
+              </article>
+            </section>
+
+            <section class="card master-item-filter-card">
+              <div class="master-item-filter-grid">
+                <label class="form-field master-item-search-field">
+                  <span class="form-label">Cari master item</span>
+                  <span class="master-item-search-wrap">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <circle cx="11" cy="11" r="7"/>
+                      <path d="m16 16 4 4"/>
+                    </svg>
+                    <input class="form-control" id="masterItemSearch" type="search" placeholder="Kode, nama, kategori, atau satuan">
+                  </span>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Jenis item</span>
+                  <select class="form-control" id="masterItemTypeFilter">
+                    <option value="">Semua jenis</option>
+                    <option value="BAHAN">Bahan</option>
+                    <option value="KEMASAN">Kemasan</option>
+                    <option value="PRODUK">Produk Jual</option>
+                    <option value="INTERNAL">Starter / Internal</option>
+                    <option value="LAINNYA">Sistem / Lainnya</option>
+                  </select>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Kategori</span>
+                  <select class="form-control" id="masterItemCategoryFilter">
+                    <option value="">Semua kategori</option>
+                  </select>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Status item</span>
+                  <select class="form-control" id="masterItemActiveFilter">
+                    <option value="">Semua status</option>
+                    <option value="ACTIVE">Aktif</option>
+                    <option value="INACTIVE">Nonaktif</option>
+                    <option value="ATTENTION">Stok perlu perhatian</option>
+                  </select>
+                </label>
+
+                <button class="btn btn-secondary master-item-reset-button" id="resetMasterItemFilters" type="button">
+                  Reset
+                </button>
+              </div>
+            </section>
+
+            <section>
+              <div class="section-heading master-item-list-heading">
+                <div>
+                  <h2>Daftar Master Item</h2>
+                  <p id="masterItemCaption">Memuat data item...</p>
+                </div>
+                <span class="status-chip info" id="masterItemCount">0 item</span>
+              </div>
+
+              <div class="master-item-list" id="masterItemList">
+                <div class="card empty-state">
+                  <p>Memuat Master Item...</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="master-resep" aria-label="Master Resep">
+          <div class="section-stack master-recipe-page">
+            <section class="master-recipe-toolbar">
+              <div class="master-recipe-toolbar-left">
+                <button class="btn btn-secondary" type="button" data-back-master-recipes>
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                    <path d="m15 18-6-6 6-6"/>
+                  </svg>
+                  Kembali ke Lainnya
+                </button>
+
+                <div>
+                  <span class="eyebrow">Standar bahan produksi</span>
+                  <h2>Master Resep</h2>
+                  <p>Kelola kebutuhan bahan F1, bahan F2, kemasan, serta hasil setiap varian bottling.</p>
+                </div>
+              </div>
+
+              <button class="btn btn-primary" id="addMasterRecipeButton" type="button">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+                Tambah Baris Resep
+              </button>
+            </section>
+
+            <section class="master-recipe-kpi-grid">
+              <article class="card master-recipe-kpi-card">
+                <span>Total baris resep</span>
+                <strong id="masterRecipeTotal">0</strong>
+                <small>Aktif dan nonaktif</small>
+              </article>
+              <article class="card master-recipe-kpi-card is-active">
+                <span>Resep aktif</span>
+                <strong id="masterRecipeActiveCount">0</strong>
+                <small>Dipakai pada produksi</small>
+              </article>
+              <article class="card master-recipe-kpi-card is-f1">
+                <span>Bahan F1</span>
+                <strong id="masterRecipeF1">0</strong>
+                <small>Per liter batch</small>
+              </article>
+              <article class="card master-recipe-kpi-card is-bottling">
+                <span>Bottling</span>
+                <strong id="masterRecipeBottling">0</strong>
+                <small>Bahan dan kemasan F2</small>
+              </article>
+              <article class="card master-recipe-kpi-card is-output">
+                <span>Hasil produk</span>
+                <strong id="masterRecipeOutputs">0</strong>
+                <small>Baris arah masuk</small>
+              </article>
+            </section>
+
+            <section class="card master-recipe-filter-card">
+              <div class="master-recipe-filter-grid">
+                <label class="form-field master-recipe-search-field">
+                  <span class="form-label">Cari resep atau item</span>
+                  <span class="master-recipe-search-wrap">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <circle cx="11" cy="11" r="7"/>
+                      <path d="m16 16 4 4"/>
+                    </svg>
+                    <input class="form-control" id="masterRecipeSearch" type="search" placeholder="Kode resep, item, varian, atau catatan">
+                  </span>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Proses</span>
+                  <select class="form-control" id="masterRecipeProcessFilter">
+                    <option value="">Semua proses</option>
+                    <option value="F1">Batch F1</option>
+                    <option value="BOTTLING">Bottling</option>
+                  </select>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Varian</span>
+                  <select class="form-control" id="masterRecipeVariantFilter">
+                    <option value="">Semua varian</option>
+                    <option value="SEMUA">Semua / F1</option>
+                    <option value="ORIGINAL">Original</option>
+                    <option value="TELANG">Telang</option>
+                    <option value="ROSELLA">Rosella</option>
+                    <option value="STARTER">Starter</option>
+                  </select>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Arah</span>
+                  <select class="form-control" id="masterRecipeDirectionFilter">
+                    <option value="">Semua arah</option>
+                    <option value="KELUAR">Bahan Keluar</option>
+                    <option value="MASUK">Hasil Masuk</option>
+                  </select>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Status</span>
+                  <select class="form-control" id="masterRecipeActiveFilter">
+                    <option value="">Semua status</option>
+                    <option value="ACTIVE">Aktif</option>
+                    <option value="INACTIVE">Nonaktif</option>
+                  </select>
+                </label>
+
+                <button class="btn btn-secondary master-recipe-reset-button" id="resetMasterRecipeFilters" type="button">
+                  Reset
+                </button>
+              </div>
+            </section>
+
+            <section>
+              <div class="section-heading master-recipe-list-heading">
+                <div>
+                  <h2>Susunan Resep</h2>
+                  <p id="masterRecipeCaption">Memuat resep...</p>
+                </div>
+                <span class="status-chip info" id="masterRecipeCount">0 baris</span>
+              </div>
+
+              <div class="master-recipe-groups" id="masterRecipeGroups">
+                <div class="card empty-state"><p>Memuat Master Resep...</p></div>
+              </div>
+            </section>
+
+            <div class="master-recipe-info-note">
+              Perubahan resep berlaku pada produksi berikutnya. Batch, bottling, stok, dan HPP transaksi lama tidak dihitung ulang.
+            </div>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="pengaturan" aria-label="Pengaturan Aplikasi">
+          <div class="section-stack app-settings-page">
+            <section class="app-settings-toolbar">
+              <div class="app-settings-toolbar-left">
+                <button class="btn btn-secondary" type="button" data-back-app-settings>
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                    <path d="m15 18-6-6 6-6"/>
+                  </svg>
+                  Kembali ke Lainnya
+                </button>
+
+                <div>
+                  <span class="eyebrow">Administrasi sistem</span>
+                  <h2>Pengaturan Aplikasi</h2>
+                  <p>Kelola profil usaha, produksi, transaksi, kalender, pengguna, dan keamanan.</p>
+                </div>
+              </div>
+
+              <div class="app-settings-toolbar-actions">
+                <span class="app-settings-load-status" id="appSettingsLoadStatus" data-tone="loading">
+                  Menyiapkan pengaturan...
+                </span>
+                <button class="btn btn-secondary" id="reloadAppSettings" type="button">
+                  Muat Ulang
+                </button>
+                <button class="btn btn-primary" id="saveAppSettings" type="button" data-settings-admin>
+                  Simpan Pengaturan
+                </button>
+              </div>
+            </section>
+
+            <nav class="app-settings-tabs" role="tablist" aria-label="Bagian pengaturan">
+              <button class="app-settings-tab is-active" type="button" role="tab" aria-selected="true" data-settings-tab="profil">
+                Profil Usaha
+              </button>
+              <button class="app-settings-tab" type="button" role="tab" aria-selected="false" data-settings-tab="produksi">
+                Produksi
+              </button>
+              <button class="app-settings-tab" type="button" role="tab" aria-selected="false" data-settings-tab="transaksi">
+                Transaksi
+              </button>
+              <button class="app-settings-tab" type="button" role="tab" aria-selected="false" data-settings-tab="kalender">
+                Kalender
+              </button>
+              <button class="app-settings-tab" type="button" role="tab" aria-selected="false" data-settings-tab="pengguna">
+                Pengguna
+              </button>
+              <button class="app-settings-tab" type="button" role="tab" aria-selected="false" data-settings-tab="sistem">
+                Sistem & Keamanan
+              </button>
+            </nav>
+
+            <form id="appSettingsForm" novalidate>
+              <section class="app-settings-panel is-active" data-settings-panel="profil">
+                <div class="app-settings-panel-heading">
+                  <div>
+                    <span class="eyebrow">Identitas usaha</span>
+                    <h3>Profil MERAMU</h3>
+                    <p>Nama usaha dan lokasi langsung digunakan pada identitas aplikasi.</p>
+                  </div>
+                </div>
+
+                <div class="card app-settings-card">
+                  <div class="app-settings-form-grid">
+                    <label class="form-field">
+                      <span class="form-label">Nama usaha</span>
+                      <input class="form-control" id="settingBusinessName" type="text" maxlength="80" required data-setting-admin>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Nama lokasi</span>
+                      <input class="form-control" id="settingBusinessLocation" type="text" maxlength="80" required data-setting-admin>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Nama pemilik</span>
+                      <input class="form-control" id="settingOwnerName" type="text" maxlength="80" placeholder="Opsional" data-setting-admin>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Nomor WhatsApp</span>
+                      <input class="form-control" id="settingBusinessPhone" type="tel" maxlength="30" placeholder="Contoh: 081234567890" data-setting-admin>
+                    </label>
+
+                    <label class="form-field app-settings-wide-field">
+                      <span class="form-label">Alamat usaha</span>
+                      <textarea class="form-control" id="settingBusinessAddress" rows="4" maxlength="300" placeholder="Alamat lengkap Meramu Center" data-setting-admin></textarea>
+                    </label>
+                  </div>
+                </div>
+
+                <section class="card app-settings-identity-preview">
+                  <div class="app-settings-preview-logo">M</div>
+                  <div>
+                    <span>Pratinjau identitas aplikasi</span>
+                    <strong id="settingBusinessPreviewName">MERAMU</strong>
+                    <small id="settingBusinessPreviewLocation">Meramu Center</small>
+                  </div>
+                </section>
+              </section>
+
+              <section class="app-settings-panel" data-settings-panel="produksi">
+                <div class="app-settings-panel-heading">
+                  <div>
+                    <span class="eyebrow">Standar operasional</span>
+                    <h3>Pengaturan Produksi</h3>
+                    <p>Nilai ini dipakai pada perhitungan bottling, masa simpan, dan panduan fermentasi.</p>
+                  </div>
+                </div>
+
+                <div class="card app-settings-card">
+                  <div class="app-settings-form-grid app-settings-production-grid">
+                    <label class="form-field">
+                      <span class="form-label">Ukuran botol standar</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="settingBottleMl" type="number" min="100" max="2000" step="1" inputmode="numeric" data-setting-admin>
+                        <span class="input-suffix">ml</span>
+                      </span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Botol per liter</span>
+                      <input class="form-control inventory-readonly-control" id="settingBottlesPerLiter" type="text" readonly>
+                      <small class="form-help">Dihitung otomatis dari ukuran botol.</small>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Hari minimum F1</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="settingF1MinDays" type="number" min="1" max="60" step="1" data-setting-admin>
+                        <span class="input-suffix">hari</span>
+                      </span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Hari ideal F1</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="settingF1IdealDays" type="number" min="1" max="90" step="1" data-setting-admin>
+                        <span class="input-suffix">hari</span>
+                      </span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Masa simpan produk</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="settingExpirationDays" type="number" min="1" max="365" step="1" data-setting-admin>
+                        <span class="input-suffix">hari</span>
+                      </span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Starter per liter</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="settingStarterMl" type="number" min="0" max="1000" step="1" data-setting-admin>
+                        <span class="input-suffix">ml</span>
+                      </span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Target susut fermentasi</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="settingShrinkPercent" type="number" min="0" max="100" step="0.1" data-setting-admin>
+                        <span class="input-suffix">%</span>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="app-settings-info-note">
+                  Perubahan ukuran botol mengubah estimasi botol per liter untuk proses bottling berikutnya. Transaksi lama tidak berubah.
+                </div>
+              </section>
+
+              <section class="app-settings-panel" data-settings-panel="transaksi">
+                <div class="app-settings-panel-heading">
+                  <div>
+                    <span class="eyebrow">Kas dan nomor dokumen</span>
+                    <h3>Pengaturan Transaksi</h3>
+                    <p>Atur metode pembayaran, pihak umum, dan awalan nomor transaksi baru.</p>
+                  </div>
+                </div>
+
+                <section class="card app-settings-card">
+                  <div class="app-settings-subheading">
+                    <div>
+                      <h4>Metode pembayaran aktif</h4>
+                      <p>Minimal satu metode harus dipilih.</p>
+                    </div>
+                  </div>
+
+                  <div class="app-settings-choice-grid" id="settingPaymentMethods">
+                    <label><input type="checkbox" value="CASH" data-setting-admin><span>Cash</span></label>
+                    <label><input type="checkbox" value="TRANSFER" data-setting-admin><span>Transfer</span></label>
+                    <label><input type="checkbox" value="QRIS" data-setting-admin><span>QRIS</span></label>
+                    <label><input type="checkbox" value="DEBIT" data-setting-admin><span>Debit</span></label>
+                    <label><input type="checkbox" value="LAINNYA" data-setting-admin><span>Lainnya</span></label>
+                  </div>
+
+                  <div class="app-settings-form-grid app-settings-transaction-defaults">
+                    <label class="form-field">
+                      <span class="form-label">Pelanggan umum</span>
+                      <input class="form-control" id="settingDefaultCustomer" type="text" maxlength="80" data-setting-admin>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Supplier umum</span>
+                      <input class="form-control" id="settingDefaultSupplier" type="text" maxlength="80" placeholder="Opsional" data-setting-admin>
+                    </label>
+                  </div>
+                </section>
+
+                <section class="card app-settings-card">
+                  <div class="app-settings-subheading">
+                    <div>
+                      <h4>Awalan nomor otomatis</h4>
+                      <p>Hanya transaksi baru yang menggunakan awalan terbaru.</p>
+                    </div>
+                  </div>
+
+                  <div class="app-settings-prefix-grid">
+                    <label class="form-field"><span class="form-label">Stok Awal</span><input class="form-control" id="settingPrefixOpening" type="text" maxlength="8" data-setting-admin></label>
+                    <label class="form-field"><span class="form-label">Pembelian</span><input class="form-control" id="settingPrefixPurchase" type="text" maxlength="8" data-setting-admin></label>
+                    <label class="form-field"><span class="form-label">Batch F1</span><input class="form-control" id="settingPrefixBatch" type="text" maxlength="8" data-setting-admin></label>
+                    <label class="form-field"><span class="form-label">Bottling</span><input class="form-control" id="settingPrefixBottling" type="text" maxlength="8" data-setting-admin></label>
+                    <label class="form-field"><span class="form-label">Penjualan</span><input class="form-control" id="settingPrefixSale" type="text" maxlength="8" data-setting-admin></label>
+                    <label class="form-field"><span class="form-label">Pengeluaran</span><input class="form-control" id="settingPrefixExpense" type="text" maxlength="8" data-setting-admin></label>
+                    <label class="form-field"><span class="form-label">Pemakaian</span><input class="form-control" id="settingPrefixUsage" type="text" maxlength="8" data-setting-admin></label>
+                    <label class="form-field"><span class="form-label">Stok Opname</span><input class="form-control" id="settingPrefixOpname" type="text" maxlength="8" data-setting-admin></label>
+                  </div>
+                </section>
+              </section>
+
+              <section class="app-settings-panel" data-settings-panel="kalender">
+                <div class="app-settings-panel-heading">
+                  <div>
+                    <span class="eyebrow">Google Calendar</span>
+                    <h3>Kalender & Notifikasi</h3>
+                    <p>Atur jadwal pengecekan fermentasi dan uji notifikasi pada perangkat.</p>
+                  </div>
+                </div>
+
+                <section class="card app-settings-card">
+                  <label class="app-settings-switch-control">
+                    <input id="settingCalendarEnabled" type="checkbox" data-setting-admin>
+                    <span class="app-settings-switch" aria-hidden="true"></span>
+                    <span>
+                      <strong>Aktifkan pengingat Google Calendar</strong>
+                      <small>Batch baru akan dibuatkan jadwal pengecekan otomatis.</small>
+                    </span>
+                  </label>
+
+                  <div class="app-settings-form-grid app-settings-calendar-grid">
+                    <label class="form-field app-settings-wide-field">
+                      <span class="form-label">Hari pengecekan</span>
+                      <input class="form-control" id="settingCheckDays" type="text" placeholder="5, 8, 10, 12, 14" data-setting-admin>
+                      <small class="form-help">Pisahkan angka menggunakan koma.</small>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Jam acara</span>
+                      <input class="form-control" id="settingEventTime" type="time" data-setting-admin>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Popup sebelum acara</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="settingPopupMinutes" type="number" min="5" max="40320" step="5" data-setting-admin>
+                        <span class="input-suffix">menit</span>
+                      </span>
+                    </label>
+
+                    <label class="form-field app-settings-wide-field">
+                      <span class="form-label">URL aplikasi pada deskripsi kalender</span>
+                      <input class="form-control" id="settingCalendarWebAppUrl" type="url" placeholder="Kosongkan untuk memakai link Spreadsheet" data-setting-admin>
+                    </label>
+                  </div>
+                </section>
+
+                <section class="app-settings-calendar-status-grid">
+                  <article class="card">
+                    <span>Status kalender</span>
+                    <strong id="settingCalendarReady">Belum diperiksa</strong>
+                    <small id="settingCalendarName">MERAMU — Pengingat Produksi</small>
+                  </article>
+                  <article class="card">
+                    <span>Jadwal aktif</span>
+                    <strong id="settingCalendarSchedule">Hari 5, 8, 10, 12, 14</strong>
+                    <small id="settingCalendarTimeSummary">Pukul 08:05 WIB</small>
+                  </article>
+                </section>
+
+                <div class="app-settings-calendar-actions" data-settings-admin>
+                  <button class="btn btn-secondary" id="syncAppCalendarButton" type="button">
+                    Sinkronkan Kalender
+                  </button>
+                  <button class="btn btn-primary" id="testAppCalendarButton" type="button">
+                    Buat Tes Notifikasi
+                  </button>
+                </div>
+              </section>
+
+              <section class="app-settings-panel" data-settings-panel="pengguna">
+                <div class="app-settings-panel-heading">
+                  <div>
+                    <span class="eyebrow">Akses karyawan</span>
+                    <h3>Pengguna Aplikasi</h3>
+                    <p>Administrator mengatur akun Produksi dan Kasir tanpa melihat password pengguna.</p>
+                  </div>
+                  <button class="btn btn-primary" id="addAppUserButton" type="button" data-settings-admin>
+                    Tambah Pengguna
+                  </button>
+                </div>
+
+                <section class="app-settings-user-kpi-grid">
+                  <article class="card"><span>Total pengguna</span><strong id="settingUserTotal">0</strong><small>Semua akun</small></article>
+                  <article class="card is-active"><span>Pengguna aktif</span><strong id="settingUserActive">0</strong><small>Dapat masuk aplikasi</small></article>
+                  <article class="card is-admin"><span>Administrator</span><strong id="settingUserAdmin">0</strong><small>Akses penuh</small></article>
+                  <article class="card is-staff"><span>Produksi & Kasir</span><strong id="settingUserStaff">0</strong><small>Akses sesuai tugas</small></article>
+                </section>
+
+                <div class="app-settings-user-list" id="appSettingsUserList">
+                  <div class="card empty-state"><p>Memuat pengguna...</p></div>
+                </div>
+
+                <div class="app-settings-info-note">
+                  Minimal satu Administrator aktif harus tetap tersedia. Akun yang sedang digunakan tidak dapat dinonaktifkan.
+                </div>
+              </section>
+
+              <section class="app-settings-panel" data-settings-panel="sistem">
+                <div class="app-settings-panel-heading">
+                  <div>
+                    <span class="eyebrow">Status instalasi</span>
+                    <h3>Sistem & Keamanan</h3>
+                    <p>Periksa versi, koneksi database, jumlah data, sesi login, dan password akun.</p>
+                  </div>
+                </div>
+
+                <section class="app-settings-system-grid">
+                  <article class="card app-settings-system-card">
+                    <span>Frontend</span>
+                    <strong id="settingFrontendVersion">1.30.0</strong>
+                    <small>Versi aplikasi yang dibuka</small>
+                  </article>
+                  <article class="card app-settings-system-card">
+                    <span>Backend</span>
+                    <strong id="settingBackendVersion">-</strong>
+                    <small>Versi Code.gs aktif</small>
+                  </article>
+                  <article class="card app-settings-system-card">
+                    <span>Database</span>
+                    <strong id="settingDatabaseStatus">Memeriksa...</strong>
+                    <small id="settingSpreadsheetName">Spreadsheet MERAMU</small>
+                  </article>
+                  <article class="card app-settings-system-card">
+                    <span>Item aktif</span>
+                    <strong id="settingSystemItems">0</strong>
+                    <small id="settingSystemItemsCaption">0 total item</small>
+                  </article>
+                  <article class="card app-settings-system-card">
+                    <span>Batch & Bottling</span>
+                    <strong id="settingSystemProduction">0</strong>
+                    <small>Catatan produksi</small>
+                  </article>
+                  <article class="card app-settings-system-card">
+                    <span>Jurnal transaksi</span>
+                    <strong id="settingSystemTransactions">0</strong>
+                    <small>Baris jurnal tersimpan</small>
+                  </article>
+                </section>
+
+                <section class="card app-settings-card">
+                  <div class="app-settings-subheading">
+                    <div>
+                      <h4>Keamanan operasional</h4>
+                      <p>Pengaturan ini hanya dapat diubah Administrator.</p>
+                    </div>
+                  </div>
+
+                  <div class="app-settings-form-grid app-settings-security-grid">
+                    <label class="form-field">
+                      <span class="form-label">Durasi sesi login</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="settingSessionHours" type="number" min="1" max="6" step="1" data-setting-admin>
+                        <span class="input-suffix">jam</span>
+                      </span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Batas percobaan login</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="settingMaxLoginAttempts" type="number" min="3" max="10" step="1" data-setting-admin>
+                        <span class="input-suffix">kali</span>
+                      </span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Durasi penguncian login</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="settingLoginLockMinutes" type="number" min="5" max="120" step="5" data-setting-admin>
+                        <span class="input-suffix">menit</span>
+                      </span>
+                    </label>
+
+                    <label class="app-settings-switch-control app-settings-grid-switch">
+                      <input id="settingAllowNegativeStock" type="checkbox" data-setting-admin>
+                      <span class="app-settings-switch" aria-hidden="true"></span>
+                      <span>
+                        <strong>Izinkan stok negatif</strong>
+                        <small>Disarankan tetap nonaktif.</small>
+                      </span>
+                    </label>
+                  </div>
+                </section>
+
+                <section class="card app-settings-card app-backup-settings-card">
+                  <div class="app-settings-subheading">
+                    <div>
+                      <h4>Backup Otomatis Google Drive</h4>
+                      <p>Salinan Spreadsheet lengkap disimpan pada folder khusus MERAMU Backups.</p>
+                    </div>
+                    <span class="system-status-pill" id="settingBackupTriggerStatus" data-tone="loading">Memeriksa</span>
+                  </div>
+
+                  <label class="app-settings-switch-control">
+                    <input id="settingBackupEnabled" type="checkbox" data-setting-admin>
+                    <span class="app-settings-switch" aria-hidden="true"></span>
+                    <span>
+                      <strong>Aktifkan backup otomatis</strong>
+                      <small>Mencakup MASTER, BATCH, BOTTLING, TRANSAKSI, DASHBOARD, dan log aktivitas.</small>
+                    </span>
+                  </label>
+
+                  <div class="app-settings-form-grid app-backup-settings-grid">
+                    <label class="form-field">
+                      <span class="form-label">Frekuensi</span>
+                      <select class="form-control" id="settingBackupFrequency" data-setting-admin>
+                        <option value="DAILY">Setiap hari</option>
+                        <option value="WEEKLY">Setiap minggu · Senin</option>
+                      </select>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Jam backup</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="settingBackupHour" type="number" min="0" max="23" step="1" data-setting-admin>
+                        <span class="input-suffix">WIB</span>
+                      </span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Simpan backup terakhir</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="settingBackupKeep" type="number" min="5" max="60" step="1" data-setting-admin>
+                        <span class="input-suffix">file</span>
+                      </span>
+                    </label>
+                  </div>
+
+                  <div class="app-backup-summary">
+                    <div>
+                      <span>Backup terakhir</span>
+                      <strong id="settingLastBackupName">Belum ada backup</strong>
+                      <small id="settingLastBackupTime">-</small>
+                    </div>
+                    <div class="app-backup-actions" data-settings-admin>
+                      <button class="btn btn-secondary" id="installBackupScheduleButton" type="button">
+                        Perbarui Jadwal
+                      </button>
+                      <button class="btn btn-primary" id="createBackupNowButton" type="button">
+                        Buat Backup Sekarang
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="card app-settings-card">
+                  <div class="app-settings-subheading">
+                    <div>
+                      <h4>Kesehatan Sistem</h4>
+                      <p>Status struktur database, trigger, log aktivitas, dan cache aplikasi.</p>
+                    </div>
+                    <span class="system-status-pill" id="settingProductionStatus" data-tone="loading">Memeriksa</span>
+                  </div>
+
+                  <div class="system-health-grid">
+                    <article>
+                      <span>Struktur sheet</span>
+                      <strong id="healthSheetsStatus">Memeriksa...</strong>
+                      <small id="healthSheetsCaption">5 sheet inti</small>
+                    </article>
+                    <article>
+                      <span>Log aktivitas</span>
+                      <strong id="healthActivityStatus">Memeriksa...</strong>
+                      <small>Disimpan pada MASTER</small>
+                    </article>
+                    <article>
+                      <span>Trigger kalender</span>
+                      <strong id="healthCalendarStatus">Memeriksa...</strong>
+                      <small>Pengingat fermentasi</small>
+                    </article>
+                    <article>
+                      <span>Trigger backup</span>
+                      <strong id="healthBackupStatus">Memeriksa...</strong>
+                      <small>Google Drive</small>
+                    </article>
+                    <article>
+                      <span>Cache PWA</span>
+                      <strong id="healthPwaStatus">Memeriksa...</strong>
+                      <small id="healthPwaCaption">Service Worker</small>
+                    </article>
+                    <article>
+                      <span>Error terakhir</span>
+                      <strong id="healthLastErrorStatus">Tidak ada</strong>
+                      <small id="healthLastErrorCaption">Sistem sehat</small>
+                    </article>
+                  </div>
+
+                  <div class="system-health-issues" id="systemHealthIssues" hidden></div>
+                </section>
+
+                <section class="card app-settings-card">
+                  <div class="app-settings-subheading">
+                    <div>
+                      <h4>Ganti password akun</h4>
+                      <p>Password baru minimal enam karakter.</p>
+                    </div>
+                  </div>
+
+                  <div class="app-settings-password-grid">
+                    <label class="form-field">
+                      <span class="form-label">Password saat ini</span>
+                      <input class="form-control" id="settingCurrentPassword" type="password" autocomplete="current-password">
+                    </label>
+                    <label class="form-field">
+                      <span class="form-label">Password baru</span>
+                      <input class="form-control" id="settingNewPassword" type="password" autocomplete="new-password">
+                    </label>
+                    <label class="form-field">
+                      <span class="form-label">Ulangi password baru</span>
+                      <input class="form-control" id="settingConfirmPassword" type="password" autocomplete="new-password">
+                    </label>
+                    <button class="btn btn-secondary" id="changeOwnPasswordButton" type="button">
+                      Ganti Password
+                    </button>
+                  </div>
+                  <p class="form-error" id="settingPasswordError" role="alert"></p>
+                </section>
+
+                <section class="card app-settings-card system-activity-card">
+                  <div class="app-settings-subheading">
+                    <div>
+                      <h4>Aktivitas Pengguna Terbaru</h4>
+                      <p>Login, transaksi, perubahan master, pengguna, pengaturan, dan backup.</p>
+                    </div>
+                    <button class="btn btn-secondary" id="reloadSystemActivityButton" type="button">
+                      Muat Ulang
+                    </button>
+                  </div>
+
+                  <div class="system-activity-list" id="systemActivityList">
+                    <div class="dashboard-data-placeholder">Memuat log aktivitas...</div>
+                  </div>
+                </section>
+
+                <section class="card app-settings-system-links">
+                  <div>
+                    <span>URL Web App</span>
+                    <strong id="settingSystemWebAppUrl">-</strong>
+                  </div>
+                  <div>
+                    <span>Spreadsheet ID</span>
+                    <strong id="settingSystemSpreadsheetId">Hanya Administrator</strong>
+                  </div>
+                  <div>
+                    <span>Zona waktu</span>
+                    <strong id="settingSystemTimezone">Asia/Jakarta</strong>
+                  </div>
+                  <div>
+                    <span>Sinkronisasi terakhir</span>
+                    <strong id="settingSystemGeneratedAt">-</strong>
+                  </div>
+                </section>
+              </section>
+
+              <p class="form-error app-settings-form-error" id="appSettingsFormError" role="alert"></p>
+            </form>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="label-print" aria-label="Label Print">
+          <div class="section-stack production-label-page">
+            <section class="production-label-toolbar">
+              <button class="btn btn-secondary" type="button" data-back-label-print>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                  <path d="m15 18-6-6 6-6"/>
+                </svg>
+                Kembali ke Lainnya
+              </button>
+
+              <button class="btn btn-primary" id="printProductionLabelButton" type="button">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                  <path d="M7 8V3h10v5"/>
+                  <path d="M7 17H4V9h16v8h-3"/>
+                  <path d="M7 13h10v8H7z"/>
+                </svg>
+                Cetak Label 58 mm
+              </button>
+            </section>
+
+            <div class="production-label-layout">
+              <section class="card production-label-control-card">
+                <div class="section-heading production-label-heading">
+                  <div>
+                    <h2>Pilih Batch Produksi</h2>
+                    <p>Batch terbaru dipilih otomatis. Data label mengikuti jurnal produksi F1.</p>
+                  </div>
+                  <span class="status-chip info" id="productionLabelStatus">Memuat batch</span>
+                </div>
+
+                <label class="form-field">
+                  <span class="form-label">Batch ID</span>
+                  <select class="form-control" id="productionLabelBatchSelect">
+                    <option value="">Memuat batch produksi...</option>
+                  </select>
+                </label>
+
+                <div class="production-label-data-summary" id="productionLabelDataSummary">
+                  <div>
+                    <span>Tanggal Produksi</span>
+                    <strong id="productionLabelSummaryDate">-</strong>
+                  </div>
+                  <div>
+                    <span>Volume F1</span>
+                    <strong id="productionLabelSummaryVolume">-</strong>
+                  </div>
+                  <div>
+                    <span>Estimasi F2</span>
+                    <strong id="productionLabelSummaryEstimate">-</strong>
+                  </div>
+                  <div>
+                    <span>Air Starter</span>
+                    <strong id="productionLabelSummaryStarter">-</strong>
+                  </div>
+                </div>
+
+                <div class="production-label-printer-note">
+                  Gunakan kertas thermal <strong>58 mm</strong>, skala <strong>100%</strong>, margin <strong>None/Tidak Ada</strong>, dan matikan header serta footer browser.
+                </div>
+
+                <section class="production-label-editor-card">
+                  <div class="production-label-editor-heading">
+                    <div>
+                      <span class="eyebrow">Pengaturan tampilan</span>
+                      <h3>Edit Hasil Print</h3>
+                      <p>Struktur label tetap paten. Pengaturan ini hanya mengubah font, ukuran, jarak, dan posisi.</p>
+                    </div>
+                    <button class="btn btn-secondary" id="resetProductionLabelStyleButton" type="button">
+                      Reset
+                    </button>
+                  </div>
+
+                  <div class="production-label-editor-grid">
+                    <label class="form-field">
+                      <span class="form-label">Jenis font</span>
+                      <select class="form-control" id="productionLabelFontFamily">
+                        <option value="Arial, Helvetica, sans-serif">Arial</option>
+                        <option value="'Courier New', Courier, monospace">Courier New</option>
+                        <option value="Verdana, Geneva, sans-serif">Verdana</option>
+                        <option value="Tahoma, Geneva, sans-serif">Tahoma</option>
+                        <option value="'Trebuchet MS', Arial, sans-serif">Trebuchet MS</option>
+                        <option value="Georgia, serif">Georgia</option>
+                      </select>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Ukuran font isi</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="productionLabelBodyFontSize" type="number" min="8" max="16" step="0.5" inputmode="decimal">
+                        <span class="input-suffix">pt</span>
+                      </span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Ukuran tulisan MERAMU</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="productionLabelBrandFontSize" type="number" min="12" max="24" step="1">
+                        <span class="input-suffix">pt</span>
+                      </span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Ukuran tanggal F2</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="productionLabelEstimateFontSize" type="number" min="12" max="24" step="1">
+                        <span class="input-suffix">pt</span>
+                      </span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Jarak antarbaris</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="productionLabelRowGap" type="number" min="0.5" max="3" step="0.1" inputmode="decimal">
+                        <span class="input-suffix">mm</span>
+                      </span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Lebar area isi</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="productionLabelContentWidth" type="number" min="46" max="54" step="1">
+                        <span class="input-suffix">mm</span>
+                      </span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Ukuran logo</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="productionLabelLogoSize" type="number" min="8" max="18" step="1">
+                        <span class="input-suffix">mm</span>
+                      </span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Ketebalan nilai</span>
+                      <select class="form-control" id="productionLabelValueWeight">
+                        <option value="600">Sedang</option>
+                        <option value="700">Tebal</option>
+                        <option value="800">Sangat Tebal</option>
+                        <option value="900">Ekstra Tebal</option>
+                      </select>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Posisi logo</span>
+                      <select class="form-control" id="productionLabelLogoPosition">
+                        <option value="CENTER">Tengah</option>
+                        <option value="LEFT">Kiri</option>
+                        <option value="RIGHT">Kanan</option>
+                      </select>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Posisi nilai data</span>
+                      <select class="form-control" id="productionLabelValueAlign">
+                        <option value="RIGHT">Rata kanan</option>
+                        <option value="LEFT">Rata kiri</option>
+                      </select>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Garis pemisah</span>
+                      <select class="form-control" id="productionLabelSeparatorStyle">
+                        <option value="EQUAL">Tanda sama (=)</option>
+                        <option value="DASH">Garis putus (-)</option>
+                        <option value="SOLID">Garis penuh</option>
+                      </select>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Tulisan label</span>
+                      <select class="form-control" id="productionLabelLabelCase">
+                        <option value="NORMAL">Normal</option>
+                        <option value="UPPERCASE">Kapital semua</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div class="production-label-editor-footer">
+                    <span id="productionLabelStyleStatus">Pengaturan tersimpan otomatis di perangkat ini.</span>
+                  </div>
+                </section>
+
+              </section>
+
+              <section class="card production-label-preview-card">
+                <div class="section-heading production-label-preview-heading">
+                  <div>
+                    <h2>Pratinjau Label</h2>
+                    <p>Ukuran di bawah mengikuti lebar kertas thermal 58 mm.</p>
+                  </div>
+                </div>
+
+                <div class="production-label-preview-stage">
+                  <article class="thermal-production-label" id="thermalProductionLabel" aria-label="Pratinjau label produksi">
+                    <header class="thermal-label-brand" id="thermalLabelBrand">
+                      <img src="assets/images/logo-meramu.png" alt="Logo MERAMU">
+                      <strong>MERAMU</strong>
+                    </header>
+
+                    <div class="thermal-label-separator" data-label-separator aria-hidden="true">====================</div>
+
+                    <div class="thermal-label-rows" id="thermalLabelRows">
+                      <div><span>Tanggal Produksi</span><strong id="labelPrintDate">-</strong></div>
+                      <div><span>Batch ID</span><strong id="labelPrintBatchId">-</strong></div>
+                      <div><span>Volume F1</span><strong id="labelPrintVolume">-</strong></div>
+                      <div><span>pH Awal</span><strong id="labelPrintPh">-</strong></div>
+                      <div><span>Brix Awal</span><strong id="labelPrintBrix">-</strong></div>
+                      <div><span>Air Starter</span><strong id="labelPrintStarter">-</strong></div>
+                    </div>
+
+                    <div class="thermal-label-separator" data-label-separator aria-hidden="true">====================</div>
+
+                    <div class="thermal-label-estimate" id="thermalLabelEstimate">
+                      <span>Estimasi Tanggal F2</span>
+                      <strong id="labelPrintEstimate">00/00/0000</strong>
+                    </div>
+
+                    <div class="thermal-label-separator" data-label-separator aria-hidden="true">====================</div>
+                  </article>
+                </div>
+              </section>
+            </div>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="lainnya" aria-label="Lainnya">
+          <div class="section-stack">
+            <section>
+              <div class="section-heading">
+                <div><h2>Pengaturan dan laporan</h2><p>Akses administrasi MERAMU.</p></div>
+              </div>
+
+              <div class="module-grid">
+                <button class="module-card" type="button" data-open-reports>
+                  <span class="module-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></span>
+                  <span class="module-copy"><strong>Laporan</strong><span>Penjualan, laba, cashflow, dan HPP</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-master-items>
+                  <span class="module-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg></span>
+                  <span class="module-copy"><strong>Master Item</strong><span>Kelola bahan, kemasan, dan produk</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-master-recipes>
+                  <span class="module-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3h8M9 3v5l-4.5 8.2A3.2 3.2 0 0 0 7.3 21h9.4a3.2 3.2 0 0 0 2.8-4.8L15 8V3"/></svg></span>
+                  <span class="module-copy"><strong>Master Resep</strong><span>Atur kebutuhan F1 dan bottling</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-app-users>
+                  <span class="module-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg></span>
+                  <span class="module-copy"><strong>Pengguna</strong><span>Atur akun dan hak akses</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-app-settings>
+                  <span class="module-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg></span>
+                  <span class="module-copy"><strong>Pengaturan</strong><span>EXP, hari fermentasi, dan keamanan</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-label-print>
+                  <span class="module-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path d="M7 8V3h10v5"/>
+                      <path d="M7 17H4V9h16v8h-3"/>
+                      <path d="M7 13h10v8H7z"/>
+                      <path d="M16 11h1"/>
+                    </svg>
+                  </span>
+                  <span class="module-copy"><strong>Label Print</strong><span>Cetak label batch produksi thermal 58 mm</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+              </div>
+            </section>
+
+            <section>
+              <div class="card card-body">
+                <div class="section-heading">
+                  <div><h2>Akun</h2><p><span data-user-name>Administrator</span> · <span data-user-role>Administrator</span></p></div>
+                </div>
+                <button class="btn btn-danger-soft btn-block" type="button" onclick="document.getElementById('logoutButton').click()">Keluar dari aplikasi</button>
+              </div>
+            </section>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <nav class="mobile-bottom-nav" aria-label="Navigasi bawah">
+      <button class="mobile-nav-item is-active" type="button" data-page-target="dashboard" aria-current="page">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
+        <span>Dashboard</span>
+      </button>
+      <button class="mobile-nav-item" type="button" data-page-target="produksi">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 3h8M9 3v5l-4.5 8.2A3.2 3.2 0 0 0 7.3 21h9.4a3.2 3.2 0 0 0 2.8-4.8L15 8V3"/><path d="M7.3 14h9.4"/></svg>
+        <span>Produksi</span>
+      </button>
+      <button class="mobile-nav-item" type="button" data-page-target="transaksi">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5.5h16v13H4z"/><path d="M4 9h16M8 14h3"/></svg>
+        <span>Transaksi</span>
+      </button>
+      <button class="mobile-nav-item" type="button" data-page-target="stok">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4Z"/><path d="m4 12 8 4 8-4M4 17l8 4 8-4"/></svg>
+        <span>Stok</span>
+      </button>
+      <button class="mobile-nav-item" type="button" data-page-target="lainnya">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+        <span>Lainnya</span>
+      </button>
+    </nav>
+  </div>
+
+
+  <button class="sheet-backdrop" id="activityLauncherBackdrop" type="button" inert aria-label="Tutup pilihan aktivitas" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet activity-launcher-sheet" id="activityLauncherSheet" role="dialog" inert aria-modal="true" aria-labelledby="activityLauncherTitle" aria-hidden="true">
+    <div class="sheet-fixed-header activity-launcher-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker">Aktivitas MERAMU</span>
+          <h2 id="activityLauncherTitle">Buat Aktivitas</h2>
+          <p id="activityLauncherSubtitle">Pilih aktivitas sesuai tugas akun.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeActivityLauncher" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <div class="activity-launcher-body sheet-scroll-area">
+      <div class="activity-launcher-grid" id="activityLauncherGrid">
+        <div class="dashboard-data-placeholder">Memuat pilihan aktivitas...</div>
+      </div>
+
+      <div class="activity-launcher-note">
+        Aktivitas yang tampil mengikuti hak akses Administrator, Produksi, atau Kasir.
+      </div>
+    </div>
+  </section>
+
+  <button class="sheet-backdrop" id="batchSheetBackdrop" type="button" inert aria-label="Tutup form batch" tabindex="-1"></button>
+
+  <section class="bottom-sheet batch-form-sheet" id="batchFormSheet" role="dialog" inert aria-modal="true" aria-labelledby="batchFormTitle" aria-hidden="true">
+    <div class="sheet-fixed-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker">Produksi F1</span>
+          <h2 id="batchFormTitle">Buat Batch Baru</h2>
+          <p>Bahan dihitung otomatis dari resep MERAMU.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeBatchForm" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="batchForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <div class="form-grid form-grid-two">
+            <label class="form-field">
+              <span class="form-label">Tanggal produksi</span>
+              <input class="form-control" id="batchDate" name="date" type="date" required>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Volume F1</span>
+              <span class="input-suffix-wrap">
+                <input class="form-control" id="batchVolume" name="volume" type="number" min="0.1" step="0.1" inputmode="decimal" placeholder="10" required>
+                <span class="input-suffix">liter</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="form-grid form-grid-two">
+            <label class="form-field">
+              <span class="form-label">pH awal <small>opsional</small></span>
+              <input class="form-control" id="batchPh" name="phInitial" type="number" min="0" max="14" step="0.1" inputmode="decimal" placeholder="4,1">
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Brix awal <small>opsional</small></span>
+              <input class="form-control" id="batchBrix" name="brixInitial" type="number" min="0" step="0.1" inputmode="decimal" placeholder="10">
+            </label>
+          </div>
+
+          <label class="form-field">
+            <span class="form-label">Catatan <small>opsional</small></span>
+            <textarea class="form-control" id="batchNote" name="note" rows="3" placeholder="Contoh: produksi pagi, kondisi starter baik"></textarea>
+          </label>
+
+          <section class="recipe-preview-card" aria-labelledby="recipePreviewTitle">
+            <div class="recipe-preview-head">
+              <div>
+                <span class="sheet-kicker">Estimasi otomatis</span>
+                <h3 id="recipePreviewTitle">Kebutuhan bahan</h3>
+              </div>
+              <strong id="batchEstimatedCost">Rp0</strong>
+            </div>
+            <div class="recipe-preview-list" id="batchRecipePreview">
+              <p class="recipe-empty">Masukkan volume untuk melihat kebutuhan bahan.</p>
+            </div>
+            <div class="recipe-status" id="batchStockStatus" data-status="neutral">
+              Data stok akan diperiksa sebelum batch disimpan.
+            </div>
+          </section>
+
+          <p class="form-error" id="batchFormError" role="alert"></p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer">
+        <button class="btn btn-primary btn-block" id="submitBatchButton" type="submit">
+          Simpan & Jadwalkan Pengingat
+        </button>
+      </footer>
+    </form>
+  </section>
+
+
+  <button class="sheet-backdrop" id="fermentationSheetBackdrop" type="button" inert aria-label="Tutup pemantauan fermentasi" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet" id="fermentationSheet" role="dialog" inert aria-modal="true" aria-labelledby="fermentationSheetTitle" aria-hidden="true">
+    <div class="sheet-fixed-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker">Pemantauan F1</span>
+          <h2 id="fermentationSheetTitle">Catat Fermentasi</h2>
+          <p>Simpan pH, Brix, aroma, rasa, dan kondisi batch.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeFermentationSheet" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="fermentationForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <label class="form-field">
+            <span class="form-label">Pilih batch aktif</span>
+            <select class="form-control" id="fermentationBatchSelect" name="batchId" required></select>
+          </label>
+
+          <section class="workflow-summary" id="fermentationBatchSummary">
+            <p>Pilih batch untuk melihat ringkasan.</p>
+          </section>
+
+          <div class="form-grid form-grid-two">
+            <label class="form-field">
+              <span class="form-label">Tanggal pengecekan</span>
+              <input class="form-control" id="fermentationDate" name="date" type="date" required>
+            </label>
+            <label class="form-field">
+              <span class="form-label">Hari fermentasi</span>
+              <input class="form-control" id="fermentationDay" type="text" value="-" readonly>
+            </label>
+          </div>
+
+          <div class="form-grid form-grid-two">
+            <label class="form-field">
+              <span class="form-label">pH</span>
+              <input class="form-control" id="fermentationPh" name="ph" type="number" min="0" max="14" step="0.1" inputmode="decimal" placeholder="3,7">
+            </label>
+            <label class="form-field">
+              <span class="form-label">Brix</span>
+              <input class="form-control" id="fermentationBrix" name="brix" type="number" min="0" step="0.1" inputmode="decimal" placeholder="6">
+            </label>
+          </div>
+
+          <div class="form-grid form-grid-two">
+            <label class="form-field">
+              <span class="form-label">Aroma</span>
+              <select class="form-control" name="aroma">
+                <option value="">Pilih kondisi</option>
+                <option>Normal</option><option>Segar asam</option><option>Menyengat</option><option>Aneh</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span class="form-label">Rasa</span>
+              <select class="form-control" name="taste">
+                <option value="">Pilih kondisi</option>
+                <option>Manis</option><option>Seimbang</option><option>Asam</option><option>Sangat asam</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="form-grid form-grid-two">
+            <label class="form-field">
+              <span class="form-label">Kondisi SCOBY</span>
+              <select class="form-control" name="scoby">
+                <option value="">Pilih kondisi</option>
+                <option>Baik</option><option>Tipis</option><option>Tebal</option><option>Perlu perhatian</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span class="form-label">Kondisi cairan</span>
+              <select class="form-control" name="liquid">
+                <option value="">Pilih kondisi</option>
+                <option>Normal</option><option>Jernih</option><option>Keruh</option><option>Ada endapan</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="form-field">
+            <span class="form-label">Catatan <small>opsional</small></span>
+            <textarea class="form-control" name="note" rows="3" placeholder="Contoh: aroma normal, rasa mulai seimbang"></textarea>
+          </label>
+
+          <section class="fermentation-history-card">
+            <div class="history-heading">
+              <div><span class="sheet-kicker">Riwayat batch</span><h3>Timeline pengecekan</h3></div>
+              <span class="status-chip info" id="fermentationLogCount">0 catatan</span>
+            </div>
+            <div class="fermentation-timeline" id="fermentationTimeline">
+              <p class="recipe-empty">Belum ada riwayat pengecekan.</p>
+            </div>
+          </section>
+
+          <p class="form-error" id="fermentationFormError" role="alert"></p>
+        </div>
+      </div>
+      <footer class="sheet-action-footer">
+        <button class="btn btn-primary btn-block" id="submitFermentationButton" type="submit">Simpan Pengecekan</button>
+      </footer>
+    </form>
+  </section>
+
+  <button class="sheet-backdrop" id="finishSheetBackdrop" type="button" inert aria-label="Tutup penyelesaian F1" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet" id="finishSheet" role="dialog" inert aria-modal="true" aria-labelledby="finishSheetTitle" aria-hidden="true">
+    <div class="sheet-fixed-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker">Penyelesaian F1</span>
+          <h2 id="finishSheetTitle">Selesaikan Batch</h2>
+          <p>Catat hasil akhir, susut, dan volume bersih.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeFinishSheet" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="finishForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <label class="form-field">
+            <span class="form-label">Pilih batch</span>
+            <select class="form-control" id="finishBatchSelect" name="batchId" required></select>
+          </label>
+
+          <section class="workflow-summary" id="finishBatchSummary">
+            <p>Pilih batch untuk melihat volume dan status.</p>
+          </section>
+
+          <div class="form-grid form-grid-two">
+            <label class="form-field">
+              <span class="form-label">Tanggal selesai</span>
+              <input class="form-control" id="finishDate" name="date" type="date" required>
+            </label>
+            <label class="form-field">
+              <span class="form-label">Susut</span>
+              <span class="input-suffix-wrap">
+                <input class="form-control" id="finishShrink" name="shrink" type="number" min="0" step="0.1" inputmode="decimal" value="0" required>
+                <span class="input-suffix">liter</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="form-grid form-grid-two">
+            <label class="form-field">
+              <span class="form-label">pH akhir</span>
+              <input class="form-control" id="finishPh" name="ph" type="number" min="0" max="14" step="0.1" inputmode="decimal" placeholder="3,3" required>
+            </label>
+            <label class="form-field">
+              <span class="form-label">Brix akhir</span>
+              <input class="form-control" id="finishBrix" name="brix" type="number" min="0" step="0.1" inputmode="decimal" placeholder="4" required>
+            </label>
+          </div>
+
+          <div class="volume-result-grid">
+            <div><span>Volume awal</span><strong id="finishInitialVolume">0 L</strong></div>
+            <div><span>Volume bersih</span><strong id="finishNetVolume">0 L</strong></div>
+          </div>
+
+          <div class="form-grid form-grid-two">
+            <label class="form-field">
+              <span class="form-label">Aroma akhir</span>
+              <select class="form-control" name="aroma">
+                <option value="">Pilih kondisi</option><option>Normal</option><option>Segar asam</option><option>Menyengat</option><option>Aneh</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span class="form-label">Rasa akhir</span>
+              <select class="form-control" name="taste">
+                <option value="">Pilih kondisi</option><option>Manis</option><option>Seimbang</option><option>Asam</option><option>Sangat asam</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="form-field">
+            <span class="form-label">Catatan akhir <small>opsional</small></span>
+            <textarea class="form-control" name="note" rows="3" placeholder="Contoh: F1 siap dibagi ke bottling dan starter"></textarea>
+          </label>
+
+          <div class="finish-warning">
+            Setelah disimpan, status batch menjadi <strong>Siap Bottling</strong> dan pengingat Calendar berikutnya dibatalkan.
+          </div>
+
+          <p class="form-error" id="finishFormError" role="alert"></p>
+        </div>
+      </div>
+      <footer class="sheet-action-footer">
+        <button class="btn btn-primary btn-block" id="submitFinishButton" type="submit">Selesaikan F1</button>
+      </footer>
+    </form>
+  </section>
+
+
+  <button class="sheet-backdrop" id="bottlingSheetBackdrop" type="button" inert aria-label="Tutup form bottling" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet bottling-sheet" id="bottlingSheet" role="dialog" inert aria-modal="true" aria-labelledby="bottlingSheetTitle" aria-hidden="true">
+    <div class="sheet-fixed-header bottling-header" id="bottlingHeader">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker" id="bottlingSheetKicker">Produksi F2</span>
+          <h2 id="bottlingSheetTitle">Bottling Original</h2>
+          <p id="bottlingSheetDescription">Kemas F1 menjadi produk siap jual.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeBottlingSheet" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="bottlingForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <input id="bottlingVariant" name="variant" type="hidden" value="ORIGINAL">
+
+          <label class="form-field">
+            <span class="form-label">Pilih batch siap bottling</span>
+            <select class="form-control" id="bottlingBatchSelect" name="batchId" required></select>
+          </label>
+
+          <section class="workflow-summary" id="bottlingBatchSummary">
+            <p>Pilih batch untuk melihat volume yang tersedia.</p>
+          </section>
+
+          <div class="form-grid form-grid-two">
+            <label class="form-field">
+              <span class="form-label">Tanggal proses</span>
+              <input class="form-control" id="bottlingDate" name="date" type="date" required>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Volume digunakan</span>
+              <span class="input-suffix-wrap">
+                <input class="form-control" id="bottlingVolume" name="volume" type="number" min="0.1" step="0.1" inputmode="decimal" placeholder="1" required>
+                <span class="input-suffix">liter</span>
+              </span>
+            </label>
+          </div>
+
+          <label class="form-field" id="bottlingSugarField">
+            <span class="form-label">Gula aktual <small>boleh disesuaikan</small></span>
+            <span class="input-suffix-wrap">
+              <input class="form-control" id="bottlingActualSugar" name="actualSugar" type="number" min="0" step="1" inputmode="decimal" placeholder="Otomatis dari resep">
+              <span class="input-suffix">gram</span>
+            </span>
+          </label>
+
+          <div class="bottling-output-grid">
+            <div>
+              <span id="bottlingOutputLabel">Hasil produk</span>
+              <strong id="bottlingOutputQty">0 botol</strong>
+            </div>
+            <div id="bottlingExpiryBox">
+              <span>Tanggal EXP</span>
+              <strong id="bottlingExpiry">-</strong>
+            </div>
+            <div>
+              <span>Estimasi HPP/hasil</span>
+              <strong id="bottlingUnitCost">Rp0</strong>
+            </div>
+          </div>
+
+          <section class="recipe-preview-card bottling-recipe-card" aria-labelledby="bottlingRecipeTitle">
+            <div class="recipe-preview-head">
+              <div>
+                <span class="sheet-kicker">Kebutuhan otomatis</span>
+                <h3 id="bottlingRecipeTitle">Bahan & kemasan</h3>
+              </div>
+              <strong id="bottlingEstimatedCost">Rp0</strong>
+            </div>
+            <div class="recipe-preview-list" id="bottlingRecipePreview">
+              <p class="recipe-empty">Masukkan volume untuk melihat kebutuhan.</p>
+            </div>
+            <div class="recipe-status" id="bottlingStockStatus" data-status="neutral">
+              Stok dan sisa batch akan diperiksa otomatis.
+            </div>
+          </section>
+
+          <label class="form-field">
+            <span class="form-label">Catatan <small>opsional</small></span>
+            <textarea class="form-control" name="note" rows="3" placeholder="Contoh: bottling pagi, botol dalam kondisi baik"></textarea>
+          </label>
+
+          <p class="form-error" id="bottlingFormError" role="alert"></p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer bottling-action-footer">
+        <button class="btn btn-primary btn-block" id="submitBottlingButton" type="submit">Simpan Bottling</button>
+      </footer>
+    </form>
+  </section>
+
+  <button class="sheet-backdrop" id="productionHistoryDetailBackdrop" type="button" inert aria-label="Tutup detail riwayat" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet production-history-detail-sheet" id="productionHistoryDetailSheet" role="dialog" inert aria-modal="true" aria-labelledby="productionHistoryDetailTitle" aria-hidden="true">
+    <div class="sheet-fixed-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker" id="productionHistoryDetailKicker">Riwayat Produksi</span>
+          <h2 id="productionHistoryDetailTitle">Detail Produksi</h2>
+          <p id="productionHistoryDetailSubtitle">Informasi lengkap aktivitas produksi.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeProductionHistoryDetail" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <div class="batch-form-layout">
+      <div class="sheet-scroll-area">
+        <div class="production-history-detail-body" id="productionHistoryDetailBody">
+          <p class="recipe-empty">Pilih aktivitas untuk melihat detail.</p>
+        </div>
+      </div>
+      <footer class="sheet-action-footer">
+        <button class="btn btn-secondary btn-block" id="closeProductionHistoryDetailFooter" type="button">
+          Tutup Detail
+        </button>
+      </footer>
+    </div>
+  </section>
+
+  <button class="sheet-backdrop" id="transactionHistoryDetailBackdrop" type="button" inert aria-label="Tutup detail transaksi" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet transaction-history-detail-sheet" id="transactionHistoryDetailSheet" role="dialog" inert aria-modal="true" aria-labelledby="transactionHistoryDetailTitle" aria-hidden="true">
+    <div class="sheet-fixed-header transaction-history-detail-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker" id="transactionHistoryDetailKicker">Riwayat Transaksi</span>
+          <h2 id="transactionHistoryDetailTitle">Detail Transaksi</h2>
+          <p id="transactionHistoryDetailSubtitle">Informasi lengkap jurnal barang dan kas.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeTransactionHistoryDetail" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <div class="batch-form-layout">
+      <div class="sheet-scroll-area">
+        <div class="transaction-history-detail-body" id="transactionHistoryDetailBody">
+          <p class="recipe-empty">Pilih transaksi untuk melihat detail.</p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer transaction-history-detail-footer">
+        <button class="btn btn-danger transaction-void-detail-button" id="openTransactionVoidButton" type="button" hidden>
+          Batalkan / Koreksi
+        </button>
+        <button class="btn btn-secondary" id="closeTransactionHistoryDetailFooter" type="button">
+          Tutup Detail
+        </button>
+      </footer>
+    </div>
+  </section>
+
+  <button class="sheet-backdrop" id="transactionVoidBackdrop" type="button" inert aria-label="Tutup pembatalan transaksi" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet transaction-void-sheet" id="transactionVoidSheet" role="dialog" inert aria-modal="true" aria-labelledby="transactionVoidTitle" aria-hidden="true">
+    <div class="sheet-fixed-header transaction-void-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker">Audit dan koreksi</span>
+          <h2 id="transactionVoidTitle">Batalkan Transaksi</h2>
+          <p id="transactionVoidSubtitle">Jurnal asli tidak akan dihapus.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeTransactionVoidSheet" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="transactionVoidForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <section class="transaction-void-summary" id="transactionVoidSummary">
+            <div>
+              <span>Nomor transaksi</span>
+              <strong id="transactionVoidReference">-</strong>
+            </div>
+            <div>
+              <span>Jenis transaksi</span>
+              <strong id="transactionVoidType">-</strong>
+            </div>
+            <div>
+              <span>Tanggal</span>
+              <strong id="transactionVoidDate">-</strong>
+            </div>
+            <div>
+              <span>Nilai utama</span>
+              <strong id="transactionVoidValue">-</strong>
+            </div>
+          </section>
+
+          <div class="transaction-void-warning">
+            <strong>Transaksi tidak akan dihapus.</strong>
+            <span>Sistem membuat jurnal pembalik agar stok dan kas kembali otomatis. Seluruh aktivitas tetap tersimpan pada audit trail.</span>
+          </div>
+
+          <label class="form-field">
+            <span class="form-label">Alasan pembatalan <small>wajib</small></span>
+            <textarea
+              class="form-control"
+              id="transactionVoidReason"
+              rows="4"
+              minlength="10"
+              maxlength="300"
+              placeholder="Contoh: Jumlah barang salah input dan akan dicatat ulang."
+              required
+            ></textarea>
+            <small class="form-help">Minimal 10 karakter dan akan tampil pada riwayat transaksi.</small>
+          </label>
+
+          <label class="app-settings-switch-control">
+            <input id="transactionVoidReentry" type="checkbox" checked>
+            <span class="app-settings-switch" aria-hidden="true"></span>
+            <span>
+              <strong>Buka form pencatatan ulang</strong>
+              <small>Setelah pembatalan berhasil, buka form transaksi yang sama untuk koreksi.</small>
+            </span>
+          </label>
+
+          <label class="transaction-void-confirmation">
+            <input id="transactionVoidConfirmed" type="checkbox">
+            <span>
+              Saya memahami bahwa pembatalan membuat jurnal pembalik dan tidak dapat dibatalkan kembali.
+            </span>
+          </label>
+
+          <div class="transaction-void-limitation">
+            Produksi F1 dan Bottling tidak dibatalkan dari Riwayat Transaksi karena berkaitan dengan status Batch. Koreksi keduanya dilakukan melalui alur Produksi.
+          </div>
+
+          <p class="form-error" id="transactionVoidError" role="alert"></p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer transaction-void-footer">
+        <button class="btn btn-secondary" id="cancelTransactionVoidButton" type="button">
+          Kembali
+        </button>
+        <button class="btn btn-danger" id="submitTransactionVoidButton" type="submit">
+          Batalkan Transaksi
+        </button>
+      </footer>
+    </form>
+  </section>
+
+  <button class="sheet-backdrop" id="stockItemDetailBackdrop" type="button" inert aria-label="Tutup detail stok" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet stock-item-detail-sheet" id="stockItemDetailSheet" role="dialog" inert aria-modal="true" aria-labelledby="stockItemDetailTitle" aria-hidden="true">
+    <div class="sheet-fixed-header stock-item-detail-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker" id="stockItemDetailKicker">Rincian persediaan</span>
+          <h2 id="stockItemDetailTitle">Detail Item</h2>
+          <p id="stockItemDetailSubtitle">Informasi stok, harga, dan mutasi terbaru.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeStockItemDetail" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <div class="batch-form-layout">
+      <div class="sheet-scroll-area">
+        <div class="stock-item-detail-body" id="stockItemDetailBody">
+          <p class="recipe-empty">Pilih item untuk melihat detail.</p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer stock-item-detail-footer">
+        <button class="btn btn-secondary" id="editStockItemMasterButton" type="button">
+          Edit Master Item
+        </button>
+        <button class="btn btn-primary" id="closeStockItemDetailFooter" type="button">
+          Tutup
+        </button>
+      </footer>
+    </div>
+  </section>
+
+  <button class="sheet-backdrop" id="masterItemSheetBackdrop" type="button" inert aria-label="Tutup form Master Item" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet master-item-sheet" id="masterItemSheet" role="dialog" inert aria-modal="true" aria-labelledby="masterItemSheetTitle" aria-hidden="true">
+    <div class="sheet-fixed-header master-item-sheet-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker" id="masterItemSheetKicker">Administrasi persediaan</span>
+          <h2 id="masterItemSheetTitle">Tambah Master Item</h2>
+          <p id="masterItemSheetSubtitle">Stok dan HPP tidak diubah melalui form ini.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeMasterItemSheet" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="masterItemForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <input id="masterItemMode" type="hidden" value="create">
+
+          <div class="master-item-form-grid">
+            <label class="form-field">
+              <span class="form-label">Kode item</span>
+              <input class="form-control master-item-code-input" id="masterItemCode" type="text" maxlength="12" placeholder="Contoh: BB006" required>
+              <small class="form-help" id="masterItemCodeHelp">Kode otomatis dapat disesuaikan sebelum item dibuat.</small>
+            </label>
+
+            <label class="form-field master-item-name-field">
+              <span class="form-label">Nama item</span>
+              <input class="form-control" id="masterItemName" type="text" maxlength="80" placeholder="Nama bahan, kemasan, atau produk" required>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Jenis item</span>
+              <select class="form-control" id="masterItemType" required>
+                <option value="BAHAN">Bahan</option>
+                <option value="KEMASAN">Kemasan</option>
+                <option value="PRODUK">Produk Jual</option>
+                <option value="INTERNAL">Starter / Internal</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Kategori</span>
+              <input class="form-control" id="masterItemCategory" type="text" list="masterItemCategoryOptions" maxlength="60" placeholder="Contoh: Bahan F2" required>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Satuan</span>
+              <input class="form-control" id="masterItemUnit" type="text" list="masterItemUnitOptions" maxlength="20" placeholder="gram, ml, pcs, botol" required>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Stok minimum</span>
+              <input class="form-control" id="masterItemMinStock" type="number" min="0" step="0.01" inputmode="decimal" value="0" required>
+            </label>
+
+            <label class="form-field master-item-price-field" id="masterItemSellPriceField" hidden>
+              <span class="form-label">Harga jual produk</span>
+              <input class="form-control money-input" id="masterItemSellPrice" type="text" inputmode="numeric" autocomplete="off" value="Rp0" data-money-value="0">
+              <small class="form-help" id="masterItemSellPriceHelp">Harga ini digunakan otomatis saat produk dipilih pada transaksi Penjualan.</small>
+            </label>
+          </div>
+
+          <datalist id="masterItemCategoryOptions">
+            <option value="Bahan F1">
+            <option value="Bahan F2">
+            <option value="Bahan F1/F2">
+            <option value="Botol">
+            <option value="Label">
+            <option value="Pengiriman">
+            <option value="Produk Jadi">
+            <option value="Starter">
+            <option value="Operasional">
+          </datalist>
+
+          <datalist id="masterItemUnitOptions">
+            <option value="gram">
+            <option value="ml">
+            <option value="liter">
+            <option value="pcs">
+            <option value="botol">
+            <option value="Kantong">
+            <option value="meter">
+            <option value="unit">
+          </datalist>
+
+          <section class="master-item-readonly-grid">
+            <div>
+              <span>Stok sekarang</span>
+              <strong id="masterItemCurrentStock">0</strong>
+              <small>Tidak dapat diedit di sini</small>
+            </div>
+            <div>
+              <span>HPP rata-rata</span>
+              <strong id="masterItemAverageCost">Rp0</strong>
+              <small>Dihitung otomatis</small>
+            </div>
+            <div>
+              <span>Harga beli terakhir</span>
+              <strong id="masterItemLastBuyPrice">Rp0</strong>
+              <small>Dari pembelian terakhir</small>
+            </div>
+          </section>
+
+          <div class="master-item-price-guidance" id="masterItemPriceGuidance">
+            Harga beli terakhir diperbarui otomatis dari transaksi Pembelian, sedangkan HPP dihitung dari nilai persediaan rata-rata.
+          </div>
+
+          <label class="master-item-active-control">
+            <input id="masterItemActive" type="checkbox" checked>
+            <span class="master-item-active-switch" aria-hidden="true"></span>
+            <span>
+              <strong>Item aktif</strong>
+              <small>Item aktif dapat dipilih pada form transaksi.</small>
+            </span>
+          </label>
+
+          <label class="form-field">
+            <span class="form-label">Catatan <small>opsional</small></span>
+            <textarea class="form-control" id="masterItemNote" rows="3" maxlength="300" placeholder="Keterangan penggunaan item"></textarea>
+          </label>
+
+          <div class="master-item-safety-note" id="masterItemSafetyNote">
+            Kode, stok, HPP rata-rata, dan harga beli tidak dapat diubah melalui Master Item.
+          </div>
+
+          <p class="form-error" id="masterItemFormError" role="alert"></p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer master-item-sheet-footer">
+        <button class="btn btn-primary btn-block" id="submitMasterItemButton" type="submit">
+          Simpan Master Item
+        </button>
+      </footer>
+    </form>
+  </section>
+
+  <button class="sheet-backdrop" id="masterRecipeSheetBackdrop" type="button" inert aria-label="Tutup form Master Resep" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet master-recipe-sheet" id="masterRecipeSheet" role="dialog" inert aria-modal="true" aria-labelledby="masterRecipeSheetTitle" aria-hidden="true">
+    <div class="sheet-fixed-header master-recipe-sheet-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker" id="masterRecipeSheetKicker">Standar Produksi</span>
+          <h2 id="masterRecipeSheetTitle">Tambah Baris Resep</h2>
+          <p id="masterRecipeSheetSubtitle">Jumlah dihitung berdasarkan volume F1 atau jumlah botol.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeMasterRecipeSheet" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="masterRecipeForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <input id="masterRecipeMode" type="hidden" value="create">
+
+          <div class="master-recipe-form-grid">
+            <label class="form-field">
+              <span class="form-label">Kode resep</span>
+              <input class="form-control master-recipe-code-input" id="masterRecipeCode" type="text" maxlength="24" placeholder="Contoh: RF1-005" required>
+              <small class="form-help" id="masterRecipeCodeHelp">Kode otomatis dapat disesuaikan sebelum disimpan.</small>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Proses</span>
+              <select class="form-control" id="masterRecipeProcess" required>
+                <option value="F1">Batch F1</option>
+                <option value="BOTTLING">Bottling</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Varian</span>
+              <select class="form-control" id="masterRecipeVariant" required>
+                <option value="SEMUA">Semua / F1</option>
+                <option value="ORIGINAL">Original</option>
+                <option value="TELANG">Telang</option>
+                <option value="ROSELLA">Rosella</option>
+                <option value="STARTER">Starter</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Arah persediaan</span>
+              <select class="form-control" id="masterRecipeDirection" required>
+                <option value="KELUAR">Bahan Keluar</option>
+                <option value="MASUK">Hasil Masuk</option>
+              </select>
+            </label>
+
+            <label class="form-field master-recipe-item-field">
+              <span class="form-label">Item</span>
+              <select class="form-control" id="masterRecipeItem" required>
+                <option value="">Pilih item</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Jumlah standar</span>
+              <input class="form-control" id="masterRecipeQty" type="number" min="0.0001" max="1000000" step="0.0001" inputmode="decimal" required>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Basis perhitungan</span>
+              <select class="form-control" id="masterRecipeBasis" required>
+                <option value="PER_LITER">Per Liter F1</option>
+                <option value="PER_BOTOL">Per Botol</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Satuan</span>
+              <input class="form-control inventory-readonly-control" id="masterRecipeUnit" type="text" readonly>
+              <small class="form-help">Mengikuti satuan Master Item.</small>
+            </label>
+          </div>
+
+          <section class="master-recipe-preview" id="masterRecipePreview">
+            <span>Pratinjau kebutuhan</span>
+            <strong>Pilih item dan isi jumlah standar.</strong>
+            <small>Contoh: 75 gram per 1 liter F1.</small>
+          </section>
+
+          <label class="app-settings-switch-control">
+            <input id="masterRecipeActive" type="checkbox" checked>
+            <span class="app-settings-switch" aria-hidden="true"></span>
+            <span>
+              <strong>Resep aktif</strong>
+              <small>Baris aktif langsung dipakai pada produksi berikutnya.</small>
+            </span>
+          </label>
+
+          <label class="form-field">
+            <span class="form-label">Catatan <small>opsional</small></span>
+            <textarea class="form-control" id="masterRecipeNote" rows="3" maxlength="300" placeholder="Keterangan bahan, kemasan, atau hasil produk"></textarea>
+          </label>
+
+          <div class="master-recipe-safety-note" id="masterRecipeSafetyNote">
+            Satuan selalu mengikuti Master Item. Untuk satu varian bottling hanya boleh ada satu hasil masuk aktif.
+          </div>
+
+          <p class="form-error" id="masterRecipeFormError" role="alert"></p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer master-recipe-sheet-footer">
+        <button class="btn btn-primary btn-block" id="submitMasterRecipeButton" type="submit">
+          Simpan Baris Resep
+        </button>
+      </footer>
+    </form>
+  </section>
+
+  <button class="sheet-backdrop" id="appUserSheetBackdrop" type="button" inert aria-label="Tutup form pengguna" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet app-user-sheet" id="appUserSheet" role="dialog" inert aria-modal="true" aria-labelledby="appUserSheetTitle" aria-hidden="true">
+    <div class="sheet-fixed-header app-user-sheet-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker" id="appUserSheetKicker">Pengguna Aplikasi</span>
+          <h2 id="appUserSheetTitle">Tambah Pengguna</h2>
+          <p id="appUserSheetSubtitle">Buat akun sesuai tugas karyawan.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeAppUserSheet" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="appUserForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <input id="appUserMode" type="hidden" value="create">
+
+          <div class="app-user-form-grid">
+            <label class="form-field">
+              <span class="form-label">Username</span>
+              <input class="form-control" id="appUserUsername" type="text" maxlength="30" autocomplete="off" placeholder="contoh: produksi1" required>
+              <small class="form-help">Huruf kecil, angka, titik, garis bawah, atau tanda hubung.</small>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Nama lengkap</span>
+              <input class="form-control" id="appUserName" type="text" maxlength="80" placeholder="Nama karyawan" required>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Role</span>
+              <select class="form-control" id="appUserRole" required>
+                <option value="PRODUKSI">Produksi</option>
+                <option value="KASIR">Kasir</option>
+                <option value="ADMIN">Administrator</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label" id="appUserPasswordLabel">Password awal</span>
+              <input class="form-control" id="appUserPassword" type="password" minlength="6" autocomplete="new-password" required>
+              <small class="form-help" id="appUserPasswordHelp">Minimal enam karakter.</small>
+            </label>
+          </div>
+
+          <label class="app-settings-switch-control">
+            <input id="appUserActive" type="checkbox" checked>
+            <span class="app-settings-switch" aria-hidden="true"></span>
+            <span>
+              <strong>Akun aktif</strong>
+              <small>Pengguna aktif dapat masuk ke aplikasi.</small>
+            </span>
+          </label>
+
+          <section class="app-user-role-guide" id="appUserRoleGuide">
+            <strong>Produksi</strong>
+            <span>Dapat mengelola Batch F1, fermentasi, bottling, dan melihat stok.</span>
+          </section>
+
+          <p class="form-error" id="appUserFormError" role="alert"></p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer app-user-sheet-footer">
+        <button class="btn btn-primary btn-block" id="submitAppUserButton" type="submit">
+          Simpan Pengguna
+        </button>
+      </footer>
+    </form>
+  </section>
+
+  <button class="sheet-backdrop" id="openingStockSheetBackdrop" type="button" inert aria-label="Tutup form stok awal" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet inventory-flow-sheet" id="openingStockSheet" role="dialog" inert aria-modal="true" aria-labelledby="openingStockSheetTitle" aria-hidden="true">
+    <div class="sheet-fixed-header inventory-sheet-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker">Saldo Persediaan</span>
+          <h2 id="openingStockSheetTitle">Masukkan Stok Awal</h2>
+          <p>Isi jumlah dan nilai persediaan sebelum operasional berjalan.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeOpeningStockSheet" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="openingStockForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <div class="form-grid form-grid-two inventory-form-top-grid">
+            <label class="form-field">
+              <span class="form-label">Tanggal stok awal</span>
+              <input class="form-control" id="openingStockDate" type="date" required>
+            </label>
+            <label class="form-field">
+              <span class="form-label">Referensi</span>
+              <input class="form-control inventory-readonly-control" type="text" value="Dibuat otomatis saat disimpan" readonly>
+            </label>
+          </div>
+
+          <section class="inventory-lines-section">
+            <div class="inventory-lines-toolbar">
+              <div>
+                <span class="sheet-kicker">Daftar persediaan</span>
+                <h3>Item stok awal</h3>
+              </div>
+              <button class="btn btn-secondary inventory-add-button" id="addOpeningStockItem" type="button">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                Tambah item
+              </button>
+            </div>
+            <div class="inventory-entry-list" id="openingStockItems"></div>
+          </section>
+
+          <div class="inventory-summary-grid">
+            <div>
+              <span>Jumlah item</span>
+              <strong id="openingStockItemCount">0</strong>
+            </div>
+            <div>
+              <span>Nilai stok awal</span>
+              <strong id="openingStockTotalValue">Rp0</strong>
+            </div>
+          </div>
+
+          <label class="form-field">
+            <span class="form-label">Catatan <small>opsional</small></span>
+            <textarea class="form-control" id="openingStockNote" rows="3" placeholder="Contoh: saldo persediaan per 12 Juli 2026"></textarea>
+          </label>
+
+          <div class="inventory-form-info">
+            Stok awal menambah jumlah persediaan dan membentuk harga rata-rata awal. Gunakan untuk saldo lama sebelum transaksi harian dicatat.
+          </div>
+
+          <p class="form-error" id="openingStockFormError" role="alert"></p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer inventory-sheet-footer">
+        <button class="btn btn-primary btn-block" id="submitOpeningStockButton" type="submit">
+          Simpan Stok Awal
+        </button>
+      </footer>
+    </form>
+  </section>
+
+  <button class="sheet-backdrop" id="purchaseSheetBackdrop" type="button" inert aria-label="Tutup form pembelian" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet inventory-flow-sheet purchase-flow-sheet" id="purchaseSheet" role="dialog" inert aria-modal="true" aria-labelledby="purchaseSheetTitle" aria-hidden="true">
+    <div class="sheet-fixed-header inventory-sheet-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker">Transaksi Masuk</span>
+          <h2 id="purchaseSheetTitle">Pembelian Bahan</h2>
+          <p>Tambah stok dan catat kas keluar dalam satu transaksi.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closePurchaseSheet" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="purchaseForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <div class="purchase-meta-grid">
+            <label class="form-field">
+              <span class="form-label">Tanggal pembelian</span>
+              <input class="form-control" id="purchaseDate" type="date" required>
+            </label>
+
+            <label class="form-field purchase-supplier-field">
+              <span class="form-label">Supplier</span>
+              <input class="form-control" id="purchaseSupplier" type="text" placeholder="Nama supplier" required>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Nomor nota</span>
+              <input class="form-control inventory-readonly-control" id="purchaseInvoice" type="text" value="Dibuat otomatis saat disimpan" readonly>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Metode pembayaran</span>
+              <select class="form-control" id="purchaseMethod" required>
+                <option value="CASH">Cash</option>
+                <option value="TRANSFER">Transfer</option>
+                <option value="QRIS">QRIS</option>
+                <option value="DEBIT">Debit</option>
+                <option value="LAINNYA">Lainnya</option>
+              </select>
+            </label>
+          </div>
+
+          <section class="inventory-lines-section">
+            <div class="inventory-lines-toolbar">
+              <div>
+                <span class="sheet-kicker">Rincian nota</span>
+                <h3>Item pembelian</h3>
+              </div>
+              <button class="btn btn-secondary inventory-add-button" id="addPurchaseItem" type="button">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                Tambah item
+              </button>
+            </div>
+            <div class="inventory-entry-list" id="purchaseItems"></div>
+          </section>
+
+          <div class="form-grid form-grid-two inventory-adjustment-grid">
+            <label class="form-field">
+              <span class="form-label">Diskon transaksi</span>
+              <input class="form-control money-input" id="purchaseDiscount" type="text" inputmode="numeric" autocomplete="off" value="Rp0" data-money-value="0">
+            </label>
+            <label class="form-field">
+              <span class="form-label">Ongkir</span>
+              <input class="form-control money-input" id="purchaseShipping" type="text" inputmode="numeric" autocomplete="off" value="Rp0" data-money-value="0">
+            </label>
+          </div>
+
+          <section class="purchase-total-card">
+            <div><span>Subtotal</span><strong id="purchaseSubtotal">Rp0</strong></div>
+            <div><span>Diskon</span><strong id="purchaseDiscountValue">Rp0</strong></div>
+            <div><span>Ongkir</span><strong id="purchaseShippingValue">Rp0</strong></div>
+            <div class="is-total"><span>Total pembelian</span><strong id="purchaseGrandTotal">Rp0</strong></div>
+          </section>
+
+          <label class="form-field">
+            <span class="form-label">Catatan <small>opsional</small></span>
+            <textarea class="form-control" id="purchaseNote" rows="3" placeholder="Contoh: pembelian stok mingguan"></textarea>
+          </label>
+
+          <div class="inventory-form-info">
+            Diskon dan ongkir dibagi proporsional ke setiap item agar harga rata-rata stok tetap akurat.
+          </div>
+
+          <p class="form-error" id="purchaseFormError" role="alert"></p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer inventory-sheet-footer">
+        <button class="btn btn-primary btn-block" id="submitPurchaseButton" type="submit">
+          Simpan Pembelian
+        </button>
+      </footer>
+    </form>
+  </section>
+
+  <button class="sheet-backdrop" id="saleSheetBackdrop" type="button" inert aria-label="Tutup form penjualan" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet sale-flow-sheet" id="saleSheet" role="dialog" inert aria-modal="true" aria-labelledby="saleSheetTitle" aria-hidden="true">
+    <div class="sheet-fixed-header sale-sheet-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker">Transaksi Keluar</span>
+          <h2 id="saleSheetTitle">Penjualan Produk</h2>
+          <p>Kurangi stok, catat pemasukan, dan hitung laba dalam satu invoice.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeSaleSheet" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="saleForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <div class="sale-meta-grid">
+            <label class="form-field">
+              <span class="form-label">Tanggal penjualan</span>
+              <input class="form-control" id="saleDate" type="date" required>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Nomor invoice</span>
+              <input class="form-control inventory-readonly-control" id="saleInvoice" type="text" value="Dibuat otomatis saat disimpan" readonly>
+            </label>
+
+            <label class="form-field sale-customer-field">
+              <span class="form-label">Pelanggan <small>opsional</small></span>
+              <input class="form-control" id="saleCustomer" type="text" placeholder="Nama pelanggan">
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Metode pembayaran</span>
+              <select class="form-control" id="saleMethod" required>
+                <option value="CASH">Cash</option>
+                <option value="TRANSFER">Transfer</option>
+                <option value="QRIS">QRIS</option>
+                <option value="DEBIT">Debit</option>
+                <option value="LAINNYA">Lainnya</option>
+              </select>
+            </label>
+          </div>
+
+          <section class="sale-lines-section">
+            <div class="sale-lines-toolbar">
+              <div>
+                <span class="sheet-kicker">Rincian invoice</span>
+                <h3>Produk terjual</h3>
+              </div>
+              <button class="btn btn-secondary sale-add-button" id="addSaleItem" type="button">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                Tambah produk
+              </button>
+            </div>
+
+            <div class="sale-entry-list" id="saleItems"></div>
+          </section>
+
+          <div class="form-grid form-grid-two sale-adjustment-grid">
+            <label class="form-field">
+              <span class="form-label">Diskon invoice</span>
+              <input class="form-control money-input" id="saleDiscount" type="text" inputmode="numeric" autocomplete="off" value="Rp0" data-money-value="0">
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Biaya kirim</span>
+              <input class="form-control money-input" id="saleShipping" type="text" inputmode="numeric" autocomplete="off" value="Rp0" data-money-value="0">
+            </label>
+          </div>
+
+          <section class="sale-financial-summary">
+            <div>
+              <span>Subtotal produk</span>
+              <strong id="saleSubtotal">Rp0</strong>
+            </div>
+            <div>
+              <span>Diskon</span>
+              <strong id="saleDiscountValue">Rp0</strong>
+            </div>
+            <div>
+              <span>Biaya kirim</span>
+              <strong id="saleShippingValue">Rp0</strong>
+            </div>
+            <div class="is-total">
+              <span>Total dibayar</span>
+              <strong id="saleGrandTotal">Rp0</strong>
+            </div>
+            <div>
+              <span>HPP produk</span>
+              <strong id="saleHpp">Rp0</strong>
+            </div>
+            <div class="is-profit">
+              <span>Estimasi laba kotor</span>
+              <strong id="saleGrossProfit">Rp0</strong>
+            </div>
+          </section>
+
+          <label class="form-field">
+            <span class="form-label">Catatan <small>opsional</small></span>
+            <textarea class="form-control" id="saleNote" rows="3" placeholder="Contoh: pesanan pickup, pembayaran lunas"></textarea>
+          </label>
+
+          <div class="sale-form-info">
+            Harga jual otomatis mengikuti Master Item dan masih dapat disesuaikan per produk. Penjualan ditolak bila stok tidak cukup.
+          </div>
+
+          <p class="form-error" id="saleFormError" role="alert"></p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer sale-sheet-footer">
+        <button class="btn btn-primary btn-block" id="submitSaleButton" type="submit">
+          Simpan Penjualan
+        </button>
+      </footer>
+    </form>
+  </section>
+
+  <button class="sheet-backdrop" id="expenseSheetBackdrop" type="button" inert aria-label="Tutup form pengeluaran" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet expense-flow-sheet" id="expenseSheet" role="dialog" inert aria-modal="true" aria-labelledby="expenseSheetTitle" aria-hidden="true">
+    <div class="sheet-fixed-header expense-sheet-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker">Biaya Operasional</span>
+          <h2 id="expenseSheetTitle">Catat Pengeluaran</h2>
+          <p>Catat kas keluar tanpa mengubah stok persediaan.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeExpenseSheet" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="expenseForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <div class="expense-meta-grid">
+            <label class="form-field">
+              <span class="form-label">Tanggal pengeluaran</span>
+              <input class="form-control" id="expenseDate" type="date" required>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Nomor transaksi</span>
+              <input class="form-control inventory-readonly-control" id="expenseReference" type="text" value="Dibuat otomatis saat disimpan" readonly>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Kategori biaya</span>
+              <select class="form-control" id="expenseCategory" required>
+                <option value="">Pilih kategori</option>
+                <option value="LISTRIK & AIR">Listrik & Air</option>
+                <option value="TRANSPORTASI">Transportasi</option>
+                <option value="GAJI & INSENTIF">Gaji & Insentif</option>
+                <option value="PROMOSI">Promosi</option>
+                <option value="PERALATAN">Peralatan</option>
+                <option value="PERAWATAN">Perawatan</option>
+                <option value="ADMINISTRASI">Administrasi</option>
+                <option value="KONSUMSI">Konsumsi</option>
+                <option value="SEWA">Sewa</option>
+                <option value="PAJAK & RETRIBUSI">Pajak & Retribusi</option>
+                <option value="LAINNYA">Lainnya</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Metode pembayaran</span>
+              <select class="form-control" id="expenseMethod" required>
+                <option value="CASH">Cash</option>
+                <option value="TRANSFER">Transfer</option>
+                <option value="QRIS">QRIS</option>
+                <option value="DEBIT">Debit</option>
+                <option value="LAINNYA">Lainnya</option>
+              </select>
+            </label>
+          </div>
+
+          <section class="expense-main-card">
+            <div class="expense-main-grid">
+              <label class="form-field expense-title-field">
+                <span class="form-label">Nama pengeluaran</span>
+                <input class="form-control" id="expenseTitle" type="text" placeholder="Contoh: Listrik bulan Juli" required>
+              </label>
+
+              <label class="form-field">
+                <span class="form-label">Nominal pengeluaran</span>
+                <input class="form-control money-input expense-amount-input" id="expenseAmount" type="text" inputmode="numeric" autocomplete="off" value="Rp0" data-money-value="0" required>
+              </label>
+            </div>
+
+            <div class="expense-preview-card">
+              <div class="expense-preview-icon">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                  <path d="M4 5.5h16v13H4z"/>
+                  <path d="M8 12h8M12 8v8"/>
+                </svg>
+              </div>
+              <div class="expense-preview-copy">
+                <span id="expensePreviewCategory">Kategori belum dipilih</span>
+                <strong id="expensePreviewTitle">Nama pengeluaran</strong>
+                <small id="expensePreviewMeta">Cash · Hari ini</small>
+              </div>
+              <div class="expense-preview-value">
+                <span>Kas keluar</span>
+                <strong id="expensePreviewAmount">Rp0</strong>
+              </div>
+            </div>
+          </section>
+
+          <div class="form-grid form-grid-two expense-extra-grid">
+            <label class="form-field">
+              <span class="form-label">Penerima atau pihak terkait <small>opsional</small></span>
+              <input class="form-control" id="expenseParty" type="text" placeholder="Contoh: PLN, vendor, karyawan">
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Petugas</span>
+              <input class="form-control inventory-readonly-control" id="expenseUser" type="text" value="Administrator" readonly>
+            </label>
+          </div>
+
+          <label class="form-field">
+            <span class="form-label">Catatan <small>opsional</small></span>
+            <textarea class="form-control" id="expenseNote" rows="3" placeholder="Contoh: Pembayaran tagihan operasional bulan Juli"></textarea>
+          </label>
+
+          <div class="expense-form-info">
+            Pengeluaran hanya mencatat kas keluar dan tidak mengurangi stok. Nilainya langsung diperhitungkan pada laba operasional Dashboard.
+          </div>
+
+          <p class="form-error" id="expenseFormError" role="alert"></p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer expense-sheet-footer">
+        <button class="btn btn-primary btn-block" id="submitExpenseButton" type="submit">
+          Simpan Pengeluaran
+        </button>
+      </footer>
+    </form>
+  </section>
+
+  <button class="sheet-backdrop" id="stockUsageSheetBackdrop" type="button" inert aria-label="Tutup form pemakaian bahan" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet stock-usage-flow-sheet" id="stockUsageSheet" role="dialog" inert aria-modal="true" aria-labelledby="stockUsageSheetTitle" aria-hidden="true">
+    <div class="sheet-fixed-header stock-usage-sheet-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker">Barang Keluar Nonproduksi</span>
+          <h2 id="stockUsageSheetTitle">Pemakaian Bahan</h2>
+          <p>Catat barang rusak, tester, sampel, atau kebutuhan operasional.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeStockUsageSheet" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="stockUsageForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <div class="stock-usage-meta-grid">
+            <label class="form-field">
+              <span class="form-label">Tanggal pemakaian</span>
+              <input class="form-control" id="stockUsageDate" type="date" required>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Nomor transaksi</span>
+              <input class="form-control inventory-readonly-control" id="stockUsageReference" type="text" value="Dibuat otomatis saat disimpan" readonly>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Tujuan pemakaian</span>
+              <select class="form-control" id="stockUsagePurpose" required>
+                <option value="OPERASIONAL">Operasional</option>
+                <option value="BARANG RUSAK">Barang Rusak</option>
+                <option value="TESTER">Tester</option>
+                <option value="SAMPEL">Sampel</option>
+                <option value="UJI COBA">Uji Coba</option>
+                <option value="KEBERSIHAN">Kebersihan</option>
+                <option value="KONSUMSI INTERNAL">Konsumsi Internal</option>
+                <option value="KEDALUWARSA">Kedaluwarsa</option>
+                <option value="LAINNYA">Lainnya</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Petugas</span>
+              <input class="form-control inventory-readonly-control" id="stockUsageUser" type="text" value="Administrator" readonly>
+            </label>
+          </div>
+
+          <section class="stock-usage-lines-section">
+            <div class="stock-usage-lines-toolbar">
+              <div>
+                <span class="sheet-kicker">Rincian barang keluar</span>
+                <h3>Item yang digunakan</h3>
+              </div>
+              <button class="btn btn-secondary stock-usage-add-button" id="addStockUsageItem" type="button">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                Tambah item
+              </button>
+            </div>
+
+            <div class="stock-usage-entry-list" id="stockUsageItems"></div>
+          </section>
+
+          <div class="stock-usage-summary-grid">
+            <div>
+              <span>Jumlah item</span>
+              <strong id="stockUsageItemCount">0</strong>
+            </div>
+            <div>
+              <span>Total nilai persediaan keluar</span>
+              <strong id="stockUsageTotalCost">Rp0</strong>
+            </div>
+          </div>
+
+          <label class="form-field">
+            <span class="form-label">Catatan <small>opsional</small></span>
+            <textarea class="form-control" id="stockUsageNote" rows="3" placeholder="Contoh: 2 botol digunakan untuk tester pelanggan"></textarea>
+          </label>
+
+          <div class="stock-usage-form-info">
+            Pemakaian bahan mengurangi stok berdasarkan HPP rata-rata, tetapi tidak mencatat pemasukan maupun pengeluaran kas.
+          </div>
+
+          <p class="form-error" id="stockUsageFormError" role="alert"></p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer stock-usage-sheet-footer">
+        <button class="btn btn-primary btn-block" id="submitStockUsageButton" type="submit">
+          Simpan Pemakaian
+        </button>
+      </footer>
+    </form>
+  </section>
+
+  <button class="sheet-backdrop" id="stockOpnameSheetBackdrop" type="button" inert aria-label="Tutup form stok opname" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet stock-opname-flow-sheet" id="stockOpnameSheet" role="dialog" inert aria-modal="true" aria-labelledby="stockOpnameSheetTitle" aria-hidden="true">
+    <div class="sheet-fixed-header stock-opname-sheet-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker">Pencocokan Persediaan</span>
+          <h2 id="stockOpnameSheetTitle">Stok Opname</h2>
+          <p>Bandingkan stok sistem dengan jumlah fisik dan buat koreksi otomatis.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeStockOpnameSheet" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="stockOpnameForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <div class="stock-opname-meta-grid">
+            <label class="form-field">
+              <span class="form-label">Tanggal opname</span>
+              <input class="form-control" id="stockOpnameDate" type="date" required>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Nomor opname</span>
+              <input class="form-control inventory-readonly-control" id="stockOpnameReference" type="text" value="Dibuat otomatis saat disimpan" readonly>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Kategori</span>
+              <select class="form-control" id="stockOpnameCategory">
+                <option value="">Semua kategori</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Petugas</span>
+              <input class="form-control inventory-readonly-control" id="stockOpnameUser" type="text" value="Administrator" readonly>
+            </label>
+          </div>
+
+          <section class="stock-opname-control-card">
+            <label class="stock-opname-search-field">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+              <input id="stockOpnameSearch" type="search" placeholder="Cari kode atau nama item">
+            </label>
+
+            <div class="stock-opname-quick-actions">
+              <button class="btn btn-secondary" id="fillStockOpnameSystem" type="button">
+                Isi sesuai sistem
+              </button>
+              <button class="btn btn-secondary" id="clearStockOpnamePhysical" type="button">
+                Kosongkan fisik
+              </button>
+            </div>
+
+            <label class="stock-opname-difference-toggle">
+              <input id="stockOpnameDifferenceOnly" type="checkbox">
+              <span>Hanya yang selisih</span>
+            </label>
+          </section>
+
+          <section class="stock-opname-lines-section">
+            <div class="stock-opname-lines-toolbar">
+              <div>
+                <span class="sheet-kicker">Daftar Persediaan</span>
+                <h3>Isi stok fisik</h3>
+              </div>
+              <span class="stock-opname-visible-count" id="stockOpnameVisibleCount">0 item tampil</span>
+            </div>
+
+            <div class="stock-opname-column-head" aria-hidden="true">
+              <span>Item</span>
+              <span>Stok sistem</span>
+              <span>Stok fisik</span>
+              <span>Selisih</span>
+              <span>Nilai selisih</span>
+            </div>
+
+            <div class="stock-opname-entry-list" id="stockOpnameItems"></div>
+          </section>
+
+          <section class="stock-opname-summary-grid">
+            <div>
+              <span>Sudah dihitung</span>
+              <strong id="stockOpnameCounted">0 item</strong>
+            </div>
+            <div>
+              <span>Perlu koreksi</span>
+              <strong id="stockOpnameAdjusted">0 item</strong>
+            </div>
+            <div class="is-surplus">
+              <span>Stok lebih</span>
+              <strong id="stockOpnameSurplus">0 item</strong>
+            </div>
+            <div class="is-shortage">
+              <span>Stok kurang</span>
+              <strong id="stockOpnameShortage">0 item</strong>
+            </div>
+            <div class="is-value">
+              <span>Nilai selisih bersih</span>
+              <strong id="stockOpnameNetValue">Rp0</strong>
+            </div>
+          </section>
+
+          <label class="form-field">
+            <span class="form-label">Catatan opname <small>opsional</small></span>
+            <textarea class="form-control" id="stockOpnameNote" rows="3" placeholder="Contoh: opname persediaan akhir bulan"></textarea>
+          </label>
+
+          <div class="stock-opname-form-info">
+            Item yang belum dihitung boleh dibiarkan kosong. Sistem hanya mengirim item yang sudah diisi dan tidak mengubah kas.
+          </div>
+
+          <p class="form-error" id="stockOpnameFormError" role="alert"></p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer stock-opname-sheet-footer">
+        <button class="btn btn-primary btn-block" id="submitStockOpnameButton" type="submit">
+          Simpan Stok Opname
+        </button>
+      </footer>
+    </form>
+  </section>
+
+  <aside class="connectivity-banner" id="offlineBanner" hidden role="status" aria-live="polite">
+    <span class="connectivity-banner-icon" aria-hidden="true">!</span>
+    <span>
+      <strong>Mode offline</strong>
+      <small>Data tersimpan masih dapat dilihat, tetapi aktivitas baru belum dapat dikirim.</small>
+    </span>
+  </aside>
+
+  <aside class="app-update-banner" id="appUpdateBanner" hidden aria-label="Pembaruan aplikasi tersedia">
+    <span class="app-update-icon" aria-hidden="true">↻</span>
+    <span class="app-update-copy">
+      <strong>Pembaruan MERAMU tersedia</strong>
+      <small>Muat versi terbaru agar fitur dan keamanan tetap sinkron.</small>
+    </span>
+    <button class="btn btn-primary" id="applyAppUpdateButton" type="button">Perbarui</button>
+    <button class="btn btn-icon btn-secondary" id="dismissAppUpdateButton" type="button" aria-label="Nanti">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+  </aside>
+
+  <aside class="install-banner" id="installBanner" hidden aria-label="Pasang aplikasi">
+    <div class="brand-mark"><img src="assets/images/logo-meramu.png" alt=""></div>
+    <div class="install-banner-copy">
+      <strong>Pasang MERAMU</strong>
+      <span>Buka lebih cepat dari layar utama HP.</span>
+    </div>
+    <button class="btn btn-primary" id="installButton" type="button">Pasang</button>
+    <button class="btn btn-icon btn-secondary" id="dismissInstall" type="button" aria-label="Tutup">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+  </aside>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/js/config.js?v=1.31.0"></script>
+  <script src="assets/js/api.js?v=1.31.0"></script>
+  <script src="assets/js/app.js?v=1.31.0"></script>
+</body>
+</html>
