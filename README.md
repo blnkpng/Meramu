@@ -548,7 +548,7 @@ Frontend sebaiknya di-host pada HTTPS, misalnya Netlify. Setelah terbuka di brow
 - Backend V2.25 diperlukan.
 
 
-## V1.36.5 — QR Kulkas Dinamis
+## V1.36.6 — QR Kulkas Dinamis
 - Satu QR permanen per kulkas.
 - Administrator membuat dan mengedit master kulkas.
 - Administrator atau Kasir mengganti Bottling ID yang sedang dipajang.

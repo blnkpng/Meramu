@@ -7,6 +7,7 @@
     page: 'dashboard',
     deferredInstallPrompt: null,
     toastTimer: null,
+    toastCleanupTimer: null,
     dashboardCounted: false,
     initialData: null,
     batches: [],
@@ -14042,12 +14043,35 @@
     button.innerHTML = button.dataset.originalHtml || text;
   }
 
+  function hideToast(force = false) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    window.clearTimeout(state.toastTimer);
+    window.clearTimeout(state.toastCleanupTimer);
+    toast.classList.remove('is-visible');
+
+    const cleanup = () => {
+      if (toast.classList.contains('is-visible')) return;
+      toast.className = 'toast';
+      toast.replaceChildren();
+    };
+
+    if (force) {
+      cleanup();
+      return;
+    }
+
+    state.toastCleanupTimer = window.setTimeout(cleanup, 260);
+  }
+
   function showToast(message, type = 'info') {
     const toast = document.getElementById('toast');
     if (!toast) return;
     const normalizedType = toastSymbols[type] ? type : 'info';
+
+    hideToast(true);
+
     toast.className = `toast toast-${normalizedType}`;
-    toast.replaceChildren();
     const content = document.createElement('span');
     content.className = 'toast-content';
     const icon = document.createElement('span');
@@ -14059,9 +14083,13 @@
     label.textContent = message;
     content.append(icon, label);
     toast.append(content);
-    toast.classList.add('is-visible');
+
+    window.requestAnimationFrame(() => {
+      toast.classList.add('is-visible');
+    });
+
     window.clearTimeout(state.toastTimer);
-    state.toastTimer = window.setTimeout(() => toast.classList.remove('is-visible'), 3600);
+    state.toastTimer = window.setTimeout(() => hideToast(false), 3200);
   }
 
   function monitorConnectivity() {

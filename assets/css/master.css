@@ -1397,7 +1397,7 @@ textarea.form-control {
 .toast {
   position: fixed;
   z-index: 1200;
-  top: max(16px, env(safe-area-inset-top));
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
   left: 50%;
   display: flex;
   width: min(calc(100% - 28px), 440px);
@@ -1411,14 +1411,21 @@ textarea.form-control {
   box-shadow: var(--shadow-floating);
   font-size: 13px;
   font-weight: 650;
-  transform: translate(-50%, -140%);
-  transition: transform var(--transition-normal);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate3d(-50%, calc(-100% - 20px), 0);
+  transition: transform var(--transition-normal), opacity 220ms ease, visibility 0s linear 220ms;
+  will-change: transform, opacity;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
 
 .toast.is-visible {
-  transform: translate(-50%, 0);
+  opacity: 1;
+  visibility: visible;
+  transform: translate3d(-50%, 0, 0);
+  transition: transform var(--transition-normal), opacity 220ms ease, visibility 0s linear 0s;
 }
 
 /* Empty state */
