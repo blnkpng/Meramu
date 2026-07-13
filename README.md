@@ -456,3 +456,108 @@ Frontend sebaiknya di-host pada HTTPS, misalnya Netlify. Setelah terbuka di brow
 - Riwayat menampilkan status Aktif, Dibatalkan, dan Jurnal Pembatalan.
 - Laporan dan Dashboard memperhitungkan jurnal pembatalan.
 - Produksi F1 dan Bottling tetap dikoreksi melalui alur Produksi.
+
+
+## V1.32 — Tutup Kas Harian
+- Card Tutup Kas Harian tersedia pada menu Transaksi untuk Administrator dan Kasir.
+- Rekap penjualan tunai, QRIS, transfer, debit/non-tunai, serta pengeluaran tunai dihitung otomatis.
+- Kas seharusnya dihitung dari saldo awal + penjualan tunai - pengeluaran tunai.
+- Kasir hanya menutup kas miliknya sendiri.
+- Administrator dapat memilih pengguna, menyetujui, dan membuka kembali Tutup Kas dengan alasan.
+- Penjualan baru dan pembatalan transaksi dikunci setelah kas aktif ditutup.
+- Riwayat penutupan dan audit persetujuan tetap tersimpan.
+- Tersedia cetak Tutup Kas thermal 58 mm.
+
+
+## V1.33 — Label Bottling + Kedaluwarsa + QR Batch
+- Card Label Bottling tersedia di menu Lainnya.
+- Pilih Bottling ID dan jumlah label.
+- Label thermal 58 mm memuat logo, varian, volume, Batch ID, Bottling ID, tanggal bottling, EXP, pH/Brix, dan QR.
+- QR menyimpan informasi traceability batch dan dapat dipindai secara offline.
+- Editor memiliki tata letak Standar, Ringkas, dan QR di atas.
+- Riwayat cetak tersimpan pada Log Aktivitas backend dan mendukung cetak ulang.
+- Starter tidak menggunakan label produk.
+- Memerlukan backend V2.20.
+
+
+## V1.34 — Backup & Pemulihan Data
+- Card Backup & Pemulihan tersedia pada menu Lainnya untuk Administrator.
+- Daftar backup Google Drive tampil langsung di web.
+- File dapat diperiksa, dibuka di Drive, dan diunduh sebagai XLSX.
+- Pemeriksaan memvalidasi lima sheet inti, header, schema, dan Administrator aktif.
+- Pembersihan mengikuti jumlah retensi pada Pengaturan.
+- Restore memerlukan password Administrator, teks PULIHKAN MERAMU, checkbox, dan konfirmasi terakhir.
+- Sistem selalu membuat backup pengaman sebelum restore.
+- Lima sheet inti dipulihkan, lalu rumus, validasi, format kondisi, dan proteksi dinormalkan.
+- Pengguna wajib login kembali setelah restore.
+- Backend V2.21 diperlukan.
+
+
+## V1.35 — Pusat Notifikasi Operasional
+- Pusat Notifikasi tersedia di menu Lainnya untuk Administrator, Produksi, dan Kasir.
+- Dashboard menggunakan peringatan operasional terbaru sebagai daftar prioritas.
+- Sumber notifikasi: Batch, stok, EXP Bottling, backup, Tutup Kas, dan error sistem.
+- Role Produksi melihat Batch, bahan, kemasan, serta EXP.
+- Role Kasir melihat stok produk dan EXP.
+- Administrator melihat seluruh notifikasi.
+- Tindakan: Sudah Dibaca, Tunda, dan Selesaikan.
+- Status disimpan per pengguna pada Log Aktivitas.
+- Notifikasi yang diselesaikan muncul kembali bila fingerprint kondisinya berubah.
+- Google Calendar menerima stok habis, EXP H-7/H-3/H0, produk kedaluwarsa, dan backup kritis.
+- Pengingat Batch H+5, 8, 10, 12, dan 14 tetap aktif.
+- Backend V2.22 diperlukan.
+
+
+## V1.36 — Manajemen Perangkat & Sesi Login
+- Registry sesi persisten pada MASTER kolom AR:BI.
+- Daftar sesi aktif, perangkat baru, dan login gagal.
+- Batas perangkat: Administrator 3, Produksi 2, Kasir 1.
+- Masa sesi 12 jam dan timeout tidak aktif 2 jam.
+- Keluar paksa satu perangkat, semua sesi pengguna, atau semua perangkat lain.
+- Token asli tidak disimpan ke Spreadsheet; hanya hash SHA-256.
+- Login perangkat baru masuk Log Aktivitas dan Pusat Notifikasi Administrator.
+- Ganti password atau nonaktifkan akun mengeluarkan sesi lama.
+- Backend V2.23 diperlukan.
+
+
+## V1.36.2 — QR Web Detail Batch pada Label Produksi
+- Label Produksi thermal 58 mm sekarang memuat QR Detail Batch.
+- QR membuka halaman web publik read-only dari Google Apps Script.
+- Tautan dilindungi HMAC SHA-256 sehingga Batch ID saja tidak cukup untuk membuka data.
+- Halaman web menampilkan Batch ID, status, hari fermentasi, tanggal produksi, volume, starter, estimasi F2, pH, dan Brix.
+- Halaman selalu membaca data terbaru dari sheet BATCH; QR tidak perlu dicetak ulang saat status berubah.
+- Data biaya, password, catatan internal, dan identitas operator tidak ditampilkan.
+- Tombol Buka Detail Web tersedia pada halaman Label Print.
+- Ukuran QR dapat diatur 16–28 mm dan tersimpan pada perangkat.
+- Backend V2.24 diperlukan.
+
+
+## V1.36.3 — Stok per Lot & FEFO
+- Setiap Bottling ID menjadi lot stok produk.
+- Ledger lot disimpan pada MASTER kolom BJ:BY tanpa sheet baru.
+- Penjualan otomatis mengalokasikan lot dengan EXP terdekat menggunakan FEFO.
+- Produk kedaluwarsa diblokir dari penjualan, tetapi tetap terlihat sebagai stok fisik.
+- Form Penjualan menampilkan pratinjau Bottling ID dan EXP yang akan dipakai.
+- HPP penjualan memakai HPP per lot, bukan hanya HPP rata-rata Master Item.
+- Pembatalan Penjualan memulihkan stok ke lot asal.
+- Pemakaian Produk dan koreksi Stok Opname ikut mengurangi lot dengan FEFO.
+- Stok awal, pembelian produk, dan kelebihan opname masuk sebagai lot belum terlacak.
+- Migrasi awal merekonsiliasi stok lama terhadap riwayat Bottling.
+- Peringatan EXP sekarang memakai sisa nyata per Bottling ID.
+- Halaman Stok Lot & FEFO tersedia untuk Administrator, Produksi, dan Kasir.
+- Backend V2.25 diperlukan.
+
+
+## V1.36.5 — QR Kulkas Dinamis
+- Satu QR permanen per kulkas.
+- Administrator membuat dan mengedit master kulkas.
+- Administrator atau Kasir mengganti Bottling ID yang sedang dipajang.
+- Produksi dapat melihat halaman customer dan mencetak QR.
+- Halaman customer memperbarui isi setiap 60 detik.
+- Customer melihat varian, Bottling ID, Batch F1, tanggal Bottling, EXP, dan status produk.
+- Produk kedaluwarsa atau habis diberi peringatan.
+- Pengaturan isi kulkas tidak memindahkan atau mengurangi stok.
+- QR dapat dicetak sebagai kartu/stiker 10 × 15 cm.
+- Master disimpan pada MASTER BZ:CG dan riwayat isi pada CH:CS.
+- Tautan memakai HMAC SHA-256 dan tetap sama saat isi diganti.
+- Backend V2.26 diperlukan.

@@ -4,19 +4,26 @@
   const config = window.MERAMU_CONFIG;
   const READ_ACTIONS = new Set([
     'ping',
+    'session-status',
     'initial',
     'stock',
     'batches',
     'bottlings',
     'transactions',
+    'cash-closing',
     'reports',
     'dashboard',
     'notification-settings',
-    'app-settings'
+    'app-settings',
+    'backup-manager',
+    'operational-alerts',
+    'device-sessions',
+    'lot-stock',
+    'fridge-manager'
   ]);
 
   const NO_IDEMPOTENCY_ACTIONS = new Set(['login', 'logout']);
-  const AUTH_ERROR_CODES = new Set(['AUTH_EXPIRED', 'ACCOUNT_DISABLED']);
+  const AUTH_ERROR_CODES = new Set(['AUTH_EXPIRED', 'ACCOUNT_DISABLED', 'SESSION_REVOKED', 'SESSION_IDLE_EXPIRED', 'SESSION_ABSOLUTE_EXPIRED']);
   const RETRYABLE_CODES = new Set(['TEMPORARY_ERROR', 'LOCK_TIMEOUT']);
 
   class MeramuApiError extends Error {
@@ -200,7 +207,8 @@
       ? {
           action: 'login',
           username: payload.username || '',
-          password: payload.password || ''
+          password: payload.password || '',
+          device: payload.device || {}
         }
       : {action, token: token || '', payload: payload || {}};
 

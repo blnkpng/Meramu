@@ -1,13 +1,14 @@
-const CACHE_NAME = 'meramu-shell-v1.31.0';
-const APP_VERSION = '1.31.0';
+const CACHE_NAME = 'meramu-shell-v1.36.5';
+const APP_VERSION = '1.36.5';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
-  './assets/css/master.css?v=1.31.0',
-  './assets/js/config.js?v=1.31.0',
-  './assets/js/api.js?v=1.31.0',
-  './assets/js/app.js?v=1.31.0',
+  './assets/css/master.css?v=1.36.5',
+  './assets/js/config.js?v=1.36.5',
+  './assets/js/api.js?v=1.36.5',
+  './assets/js/vendor/qrcode.min.js?v=1.36.5',
+  './assets/js/app.js?v=1.36.5',
   './assets/images/logo-meramu.png',
   './assets/icons/favicon-64.png',
   './assets/icons/apple-touch-icon.png',

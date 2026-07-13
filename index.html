@@ -14,7 +14,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="assets/icons/favicon-64.png">
   <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="assets/css/master.css?v=1.31.0">
+  <link rel="stylesheet" href="assets/css/master.css?v=1.36.5">
 </head>
 <body>
   <a class="skip-link" href="#mainContent">Lewati ke konten utama</a>
@@ -114,7 +114,7 @@
         </form>
 
         <p class="auth-footnote">
-          <span data-app-version>Versi 1.31.0</span> · Akses internal MERAMU
+          <span data-app-version>Versi 1.36.5</span> · Akses internal MERAMU
         </p>
       </div>
     </section>
@@ -240,11 +240,14 @@
               <section class="card dashboard-panel dashboard-attention-panel dashboard-final-attention">
                 <div class="dashboard-panel-heading">
                   <div>
-                    <span class="dashboard-panel-kicker">Prioritas operasional</span>
-                    <h2>Perlu perhatian</h2>
-                    <p>Urutan tindakan yang paling penting saat ini.</p>
+                    <span class="dashboard-panel-kicker">Pusat notifikasi</span>
+                    <h2>Peringatan operasional</h2>
+                    <p>Batch, stok, kedaluwarsa, backup, dan kas yang perlu ditindaklanjuti.</p>
                   </div>
-                  <span class="status-chip warning" id="dashboardAttentionCount">0 prioritas</span>
+                  <div class="dashboard-alert-heading-actions">
+                    <button class="section-text-action" type="button" id="dashboardAlertCenterButton">Lihat semua</button>
+                    <span class="status-chip warning" id="dashboardAttentionCount">0 belum dibaca</span>
+                  </div>
                 </div>
 
                 <div class="dashboard-attention-list attention-card" id="dashboardAttentionList">
@@ -665,6 +668,19 @@
                   <span class="module-copy"><strong>Riwayat Transaksi</strong><span>Filter berdasarkan tanggal dan jenis</span></span>
                   <span class="chevron" aria-hidden="true"></span>
                 </button>
+
+                <button class="module-card" type="button" data-open-cash-closing>
+                  <span class="module-icon success">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path d="M4 6h16v13H4z"/>
+                      <path d="M4 10h16"/>
+                      <path d="M8 15h3"/>
+                      <circle cx="17" cy="15" r="1.5"/>
+                    </svg>
+                  </span>
+                  <span class="module-copy"><strong>Tutup Kas Harian</strong><span>Rekonsiliasi tunai, non-tunai, dan selisih kas</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
               </div>
             </section>
 
@@ -677,6 +693,188 @@
               </div>
               <div class="card list-card dynamic-list-card" id="transactionActivityList">
                 <div class="list-loading">Memuat aktivitas transaksi...</div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="tutup-kas" aria-label="Tutup Kas Harian">
+          <div class="section-stack cash-closing-page">
+            <section class="cash-closing-toolbar">
+              <button class="btn btn-secondary" type="button" data-back-cash-closing>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                Kembali ke Transaksi
+              </button>
+              <button class="btn btn-secondary" id="refreshCashClosingButton" type="button">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
+                Muat Ulang
+              </button>
+            </section>
+
+            <section class="cash-closing-heading-row">
+              <div>
+                <span class="eyebrow">Kontrol kas harian</span>
+                <h2>Tutup Kas Harian</h2>
+                <p>Penjualan dan pengeluaran dihitung otomatis dari jurnal pengguna yang dipilih.</p>
+              </div>
+              <span class="status-chip info" id="cashClosingLoadStatus">Memuat data</span>
+            </section>
+
+            <div class="cash-closing-layout">
+              <form class="card cash-closing-form-card" id="cashClosingForm" novalidate>
+                <div class="section-heading cash-closing-card-heading">
+                  <div>
+                    <h3>Rekonsiliasi Kas</h3>
+                    <p>Periksa nilai sistem, masukkan kas fisik, lalu simpan penutupan.</p>
+                  </div>
+                  <span class="cash-closing-role-chip" id="cashClosingRoleChip">Kasir</span>
+                </div>
+
+                <div class="cash-closing-filter-grid">
+                  <label class="form-field">
+                    <span class="form-label">Tanggal kas</span>
+                    <input class="form-control" id="cashClosingDate" type="date" required>
+                  </label>
+
+                  <label class="form-field">
+                    <span class="form-label">Pengguna kas</span>
+                    <select class="form-control" id="cashClosingCashier" required>
+                      <option value="">Memuat pengguna...</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="cash-closing-summary-grid">
+                  <article class="cash-closing-summary-item is-cash">
+                    <span>Penjualan Tunai</span>
+                    <strong id="cashClosingCashSales">Rp0</strong>
+                    <small id="cashClosingSaleCount">0 transaksi</small>
+                  </article>
+                  <article class="cash-closing-summary-item is-qris">
+                    <span>QRIS</span>
+                    <strong id="cashClosingQrisSales">Rp0</strong>
+                    <small>Masuk rekening</small>
+                  </article>
+                  <article class="cash-closing-summary-item is-transfer">
+                    <span>Transfer</span>
+                    <strong id="cashClosingTransferSales">Rp0</strong>
+                    <small>Masuk rekening</small>
+                  </article>
+                  <article class="cash-closing-summary-item is-other">
+                    <span>Non-Tunai Lain</span>
+                    <strong id="cashClosingOtherSales">Rp0</strong>
+                    <small>Debit dan lainnya</small>
+                  </article>
+                  <article class="cash-closing-summary-item is-expense">
+                    <span>Pengeluaran Tunai</span>
+                    <strong id="cashClosingCashExpenses">Rp0</strong>
+                    <small>Dari jurnal pengguna</small>
+                  </article>
+                  <article class="cash-closing-summary-item is-total">
+                    <span>Total Penjualan</span>
+                    <strong id="cashClosingTotalSales">Rp0</strong>
+                    <small>Tunai + non-tunai</small>
+                  </article>
+                </div>
+
+                <div class="cash-closing-money-grid">
+                  <label class="form-field">
+                    <span class="form-label">Saldo awal kas</span>
+                    <span class="input-prefix-wrap">
+                      <span class="input-prefix">Rp</span>
+                      <input class="form-control cash-closing-money-input" id="cashClosingOpeningBalance" type="text" inputmode="numeric" autocomplete="off" placeholder="0" required>
+                    </span>
+                    <small class="form-help" id="cashClosingOpeningSuggestion">Saran saldo awal: Rp0</small>
+                  </label>
+
+                  <label class="form-field">
+                    <span class="form-label">Kas fisik hasil hitung</span>
+                    <span class="input-prefix-wrap">
+                      <span class="input-prefix">Rp</span>
+                      <input class="form-control cash-closing-money-input" id="cashClosingPhysicalCash" type="text" inputmode="numeric" autocomplete="off" placeholder="0" required>
+                    </span>
+                    <small class="form-help">Jumlah uang tunai yang benar-benar tersedia.</small>
+                  </label>
+                </div>
+
+                <section class="cash-closing-reconciliation">
+                  <div>
+                    <span>Kas Seharusnya</span>
+                    <strong id="cashClosingExpectedCash">Rp0</strong>
+                    <small>Saldo awal + penjualan tunai − pengeluaran tunai</small>
+                  </div>
+                  <div id="cashClosingDifferenceCard" data-tone="neutral">
+                    <span>Selisih Kas</span>
+                    <strong id="cashClosingDifference">Rp0</strong>
+                    <small id="cashClosingDifferenceCaption">Kas fisik belum diisi</small>
+                  </div>
+                </section>
+
+                <label class="form-field">
+                  <span class="form-label">Catatan penutupan <small>opsional bila tidak ada selisih</small></span>
+                  <textarea class="form-control" id="cashClosingNote" rows="3" maxlength="500" placeholder="Contoh: Selisih karena uang kembalian belum diterima."></textarea>
+                </label>
+
+                <label class="cash-closing-confirmation">
+                  <input id="cashClosingConfirmed" type="checkbox">
+                  <span>Saya sudah menghitung kas fisik dan memastikan data di atas benar.</span>
+                </label>
+
+                <p class="form-error" id="cashClosingFormError" role="alert"></p>
+
+                <button class="btn btn-primary btn-block cash-closing-submit" id="submitCashClosingButton" type="submit">
+                  Tutup Kas Sekarang
+                </button>
+              </form>
+
+              <aside class="cash-closing-side-stack">
+                <section class="card cash-closing-status-card" id="cashClosingStatusCard" data-status="OPEN">
+                  <div class="cash-closing-status-icon" aria-hidden="true">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 10h14v10H5z"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                  </div>
+                  <span class="eyebrow">Status kas terpilih</span>
+                  <h3 id="cashClosingStatusTitle">Belum ditutup</h3>
+                  <p id="cashClosingStatusDescription">Masukkan kas fisik untuk menyelesaikan penutupan.</p>
+                  <div class="cash-closing-status-meta" id="cashClosingStatusMeta"></div>
+                  <div class="cash-closing-status-actions">
+                    <button class="btn btn-secondary" id="cashClosingActiveDetailButton" type="button" hidden>Lihat Detail</button>
+                    <button class="btn btn-primary" id="cashClosingActivePrintButton" type="button" hidden>Cetak 58 mm</button>
+                  </div>
+                </section>
+
+                <section class="card cash-closing-formula-card">
+                  <span class="eyebrow">Rumus otomatis</span>
+                  <h3>Kas Seharusnya</h3>
+                  <div class="cash-closing-formula">
+                    <span>Saldo Awal</span>
+                    <strong>+</strong>
+                    <span>Penjualan Tunai</span>
+                    <strong>−</strong>
+                    <span>Pengeluaran Tunai</span>
+                  </div>
+                  <p>QRIS, transfer, debit, dan metode non-tunai lain tidak masuk ke kas fisik.</p>
+                </section>
+              </aside>
+            </div>
+
+            <section class="cash-closing-history-section">
+              <div class="section-heading cash-closing-history-heading">
+                <div>
+                  <h2>Riwayat Tutup Kas</h2>
+                  <p id="cashClosingHistoryCaption">Memuat riwayat penutupan...</p>
+                </div>
+                <label class="cash-closing-history-filter">
+                  <span>Status</span>
+                  <select class="form-control" id="cashClosingHistoryStatus">
+                    <option value="">Semua status</option>
+                    <option value="MENUNGGU">Menunggu Persetujuan</option>
+                    <option value="DISETUJUI">Disetujui</option>
+                    <option value="DIBUKA_KEMBALI">Dibuka Kembali</option>
+                  </select>
+                </label>
+              </div>
+              <div class="cash-closing-history-list" id="cashClosingHistoryList">
+                <div class="card empty-state"><p>Memuat riwayat Tutup Kas...</p></div>
               </div>
             </section>
           </div>
@@ -986,10 +1184,19 @@
         <section class="page-section" data-page="laporan" aria-label="Laporan Usaha">
           <div class="section-stack reports-page">
             <section class="reports-toolbar">
-              <div class="reports-toolbar-copy">
-                <span class="eyebrow">Analisis operasional</span>
-                <h2>Laporan Usaha MERAMU</h2>
-                <p>Penjualan, laba rugi, persediaan, dan produksi dalam satu halaman.</p>
+              <div class="reports-toolbar-left">
+                <button class="btn btn-secondary" type="button" data-back-reports>
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                    <path d="m15 18-6-6 6-6"/>
+                  </svg>
+                  Kembali ke Lainnya
+                </button>
+
+                <div class="reports-toolbar-copy">
+                  <span class="eyebrow">Analisis operasional</span>
+                  <h2>Laporan Usaha MERAMU</h2>
+                  <p>Penjualan, laba rugi, persediaan, dan produksi dalam satu halaman.</p>
+                </div>
               </div>
 
               <div class="reports-toolbar-actions">
@@ -1423,6 +1630,305 @@
           </div>
         </section>
 
+        <section class="page-section" data-page="notifikasi" aria-label="Pusat Notifikasi">
+          <div class="section-stack operational-alert-page">
+            <section class="operational-alert-toolbar">
+              <div class="operational-alert-toolbar-left">
+                <button class="btn btn-secondary" type="button" data-back-operational-alerts>
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                  Kembali ke Lainnya
+                </button>
+                <div>
+                  <span class="eyebrow">Kontrol operasional</span>
+                  <h2>Pusat Notifikasi</h2>
+                  <p>Semua peringatan penting sesuai akses akun dalam satu halaman.</p>
+                </div>
+              </div>
+
+              <div class="operational-alert-toolbar-actions">
+                <button class="btn btn-secondary" id="reloadOperationalAlertsButton" type="button">Perbarui</button>
+                <button class="btn btn-primary" id="syncOperationalAlertsButton" type="button" data-alert-admin>
+                  Sinkronkan Kalender
+                </button>
+              </div>
+            </section>
+
+            <section class="operational-alert-summary-grid">
+              <article class="card operational-alert-summary-card is-unread">
+                <span>Belum dibaca</span>
+                <strong id="operationalAlertUnreadCount">0</strong>
+                <small>Memerlukan pemeriksaan</small>
+              </article>
+              <article class="card operational-alert-summary-card is-critical">
+                <span>Kritis</span>
+                <strong id="operationalAlertDangerCount">0</strong>
+                <small>Segera ditindaklanjuti</small>
+              </article>
+              <article class="card operational-alert-summary-card is-exp">
+                <span>Produk & EXP</span>
+                <strong id="operationalAlertExpCount">0</strong>
+                <small>Kedaluwarsa ≤ 14 hari</small>
+              </article>
+              <article class="card operational-alert-summary-card is-stock">
+                <span>Stok bermasalah</span>
+                <strong id="operationalAlertStockCount">0</strong>
+                <small>Menipis atau habis</small>
+              </article>
+              <article class="card operational-alert-summary-card is-suppressed">
+                <span>Ditunda / selesai</span>
+                <strong id="operationalAlertSuppressedCount">0</strong>
+                <small>Akan muncul lagi bila berubah</small>
+              </article>
+            </section>
+
+            <section class="card operational-alert-filter-card">
+              <div class="operational-alert-filter-grid">
+                <label class="form-field">
+                  <span class="form-label">Cari notifikasi</span>
+                  <input class="form-control" id="operationalAlertSearch" type="search" placeholder="Nama item, Batch, atau Bottling ID">
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Kategori</span>
+                  <select class="form-control" id="operationalAlertCategory">
+                    <option value="">Semua kategori</option>
+                    <option value="BATCH">Batch</option>
+                    <option value="STOCK">Stok</option>
+                    <option value="EXP">Kedaluwarsa</option>
+                    <option value="BACKUP">Backup</option>
+                    <option value="CASH">Tutup Kas</option>
+                    <option value="SYSTEM">Sistem</option>
+                    <option value="SECURITY">Keamanan</option>
+                  </select>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Prioritas</span>
+                  <select class="form-control" id="operationalAlertSeverity">
+                    <option value="">Semua prioritas</option>
+                    <option value="danger">Kritis</option>
+                    <option value="warning">Perhatian</option>
+                    <option value="info">Pantau</option>
+                  </select>
+                </label>
+
+                <label class="form-field">
+                  <span class="form-label">Status baca</span>
+                  <select class="form-control" id="operationalAlertReadState">
+                    <option value="">Semua status</option>
+                    <option value="UNREAD">Belum dibaca</option>
+                    <option value="READ">Sudah dibaca</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="operational-alert-filter-footer">
+                <span id="operationalAlertGeneratedAt">Memuat notifikasi...</span>
+                <button class="section-text-action" id="resetOperationalAlertFilters" type="button">Reset Filter</button>
+              </div>
+            </section>
+
+            <section class="card operational-alert-list-card">
+              <div class="section-heading operational-alert-list-heading">
+                <div>
+                  <h2>Peringatan aktif</h2>
+                  <p id="operationalAlertListCaption">Memuat kondisi terbaru...</p>
+                </div>
+                <span class="status-chip info" id="operationalAlertVisibleCount">0 peringatan</span>
+              </div>
+
+              <div class="operational-alert-list" id="operationalAlertList">
+                <div class="empty-state"><p>Memuat notifikasi operasional...</p></div>
+              </div>
+            </section>
+
+            <section class="card operational-alert-info-card">
+              <div>
+                <strong>Cara kerja status notifikasi</strong>
+                <p><b>Sudah Dibaca</b> tetap menampilkan peringatan. <b>Tunda 24 Jam</b> menyembunyikannya sementara. <b>Selesaikan</b> menyembunyikan kondisi yang sama dan akan menampilkannya kembali saat stok, hari EXP, status Batch, atau kondisi sistem berubah.</p>
+              </div>
+              <div>
+                <strong>Google Calendar</strong>
+                <p>Peringatan stok habis, EXP H-7, H-3, hari H, produk kedaluwarsa, dan masalah backup kritis disinkronkan ke kalender MERAMU. Pengingat Batch H+5, 8, 10, 12, dan 14 tetap berjalan seperti sebelumnya.</p>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="perangkat-sesi" aria-label="Perangkat dan Sesi Login">
+          <div class="section-stack device-session-page">
+            <section class="device-session-toolbar">
+              <div class="device-session-toolbar-left">
+                <button class="btn btn-secondary" type="button" data-back-device-sessions>
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                  Kembali ke Lainnya
+                </button>
+                <div>
+                  <span class="eyebrow">Keamanan akses</span>
+                  <h2>Perangkat & Sesi Login</h2>
+                  <p>Lihat perangkat aktif dan hentikan sesi yang tidak dikenali.</p>
+                </div>
+              </div>
+              <div class="device-session-toolbar-actions">
+                <button class="btn btn-secondary" id="reloadDeviceSessionsButton" type="button">Perbarui</button>
+                <button class="btn btn-danger" id="revokeAllOtherSessionsButton" type="button">Keluarkan Semua Perangkat Lain</button>
+              </div>
+            </section>
+
+            <section class="device-session-summary-grid">
+              <article class="card device-session-summary-card is-active"><span>Sesi aktif</span><strong id="deviceSessionActiveCount">0</strong><small>Perangkat sedang terhubung</small></article>
+              <article class="card device-session-summary-card is-users"><span>Pengguna aktif</span><strong id="deviceSessionUserCount">0</strong><small>Memiliki sesi aktif</small></article>
+              <article class="card device-session-summary-card is-new"><span>Perangkat baru</span><strong id="deviceSessionNewCount">0</strong><small>Terdeteksi 7 hari terakhir</small></article>
+              <article class="card device-session-summary-card is-failed"><span>Login gagal</span><strong id="deviceSessionFailedCount">0</strong><small>Dalam 24 jam terakhir</small></article>
+            </section>
+
+            <section class="device-session-policy-grid">
+              <article class="card device-session-policy-card"><span>Administrator</span><strong id="devicePolicyAdmin">3 perangkat</strong><small>Maksimal perangkat aktif</small></article>
+              <article class="card device-session-policy-card"><span>Produksi</span><strong id="devicePolicyProduction">2 perangkat</strong><small>Maksimal perangkat aktif</small></article>
+              <article class="card device-session-policy-card"><span>Kasir</span><strong id="devicePolicyCashier">1 perangkat</strong><small>Maksimal perangkat aktif</small></article>
+              <article class="card device-session-policy-card is-time"><span>Masa sesi</span><strong id="devicePolicyDuration">12 jam</strong><small>Keluar setelah tidak aktif 2 jam</small></article>
+            </section>
+
+            <section class="card device-session-filter-card">
+              <div class="device-session-filter-grid">
+                <label class="form-field">
+                  <span class="form-label">Cari perangkat</span>
+                  <input class="form-control" id="deviceSessionSearch" type="search" placeholder="Nama, username, browser, atau OS">
+                </label>
+                <label class="form-field">
+                  <span class="form-label">Pengguna</span>
+                  <select class="form-control" id="deviceSessionUserFilter"><option value="">Semua pengguna</option></select>
+                </label>
+                <label class="form-field">
+                  <span class="form-label">Status sesi</span>
+                  <select class="form-control" id="deviceSessionStatusFilter">
+                    <option value="ACTIVE">Aktif</option>
+                    <option value="">Semua status</option>
+                    <option value="LOGGED_OUT">Keluar normal</option>
+                    <option value="REVOKED">Dikeluarkan</option>
+                    <option value="REPLACED">Diganti login baru</option>
+                    <option value="EXPIRED">Kedaluwarsa</option>
+                  </select>
+                </label>
+              </div>
+              <div class="device-session-filter-footer">
+                <span id="deviceSessionGeneratedAt">Memuat sesi...</span>
+                <button class="section-text-action" id="resetDeviceSessionFilters" type="button">Reset Filter</button>
+              </div>
+            </section>
+
+            <section class="card device-session-list-card">
+              <div class="section-heading device-session-list-heading">
+                <div><h2>Daftar perangkat</h2><p id="deviceSessionListCaption">Memuat perangkat...</p></div>
+                <span class="status-chip info" id="deviceSessionVisibleCount">0 sesi</span>
+              </div>
+              <div class="device-session-list" id="deviceSessionList"><div class="empty-state"><p>Memuat sesi perangkat...</p></div></div>
+            </section>
+
+            <section class="card failed-login-card">
+              <div class="section-heading failed-login-heading">
+                <div><h2>Riwayat Login Gagal</h2><p>Upaya login gagal dalam 30 hari terakhir.</p></div>
+                <span class="status-chip warning" id="failedLoginHistoryCount">0 catatan</span>
+              </div>
+              <div class="failed-login-list" id="failedLoginList"><div class="empty-state"><p>Belum ada catatan login gagal.</p></div></div>
+            </section>
+
+            <section class="card device-session-security-note">
+              <div><strong>Token aman</strong><p>Spreadsheet hanya menyimpan hash token. Token asli tetap berada pada browser dan tidak dapat dibaca dari database.</p></div>
+              <div><strong>Login baru</strong><p>Login pada perangkat yang belum pernah dikenal dicatat ke Log Aktivitas dan muncul sebagai peringatan untuk Administrator.</p></div>
+              <div><strong>Ganti password</strong><p>Semua sesi lama otomatis dikeluarkan. Perangkat yang digunakan untuk mengganti password tetap aktif.</p></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="backup-pemulihan" aria-label="Backup dan Pemulihan">
+          <div class="section-stack backup-manager-page">
+            <section class="backup-manager-toolbar">
+              <div class="backup-manager-toolbar-left">
+                <button class="btn btn-secondary" type="button" data-back-backup-manager>
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                  Kembali ke Lainnya
+                </button>
+                <div>
+                  <span class="eyebrow">Keamanan database</span>
+                  <h2>Backup & Pemulihan</h2>
+                  <p>Kelola salinan Google Drive dan pulihkan database dengan pengamanan berlapis.</p>
+                </div>
+              </div>
+
+              <div class="backup-manager-toolbar-actions">
+                <button class="btn btn-secondary" id="reloadBackupManagerButton" type="button">Perbarui</button>
+                <button class="btn btn-secondary" id="cleanupBackupManagerButton" type="button">Bersihkan File Lama</button>
+                <button class="btn btn-primary" id="createBackupManagerButton" type="button">Buat Backup Sekarang</button>
+              </div>
+            </section>
+
+            <section class="backup-manager-overview-grid">
+              <article class="card backup-manager-overview-card">
+                <span>Database aktif</span>
+                <strong id="backupManagerDatabaseName">MERAMU</strong>
+                <small id="backupManagerDatabaseMeta">Memeriksa...</small>
+              </article>
+              <article class="card backup-manager-overview-card">
+                <span>Backup terakhir</span>
+                <strong id="backupManagerLastBackup">Belum ada</strong>
+                <small id="backupManagerLastBackupTime">-</small>
+              </article>
+              <article class="card backup-manager-overview-card">
+                <span>Jadwal otomatis</span>
+                <strong id="backupManagerSchedule">Memeriksa...</strong>
+                <small id="backupManagerScheduleMeta">-</small>
+              </article>
+              <article class="card backup-manager-overview-card">
+                <span>Pemulihan terakhir</span>
+                <strong id="backupManagerLastRestore">Belum pernah</strong>
+                <small id="backupManagerLastRestoreMeta">-</small>
+              </article>
+            </section>
+
+            <section class="card backup-manager-safety-card">
+              <div class="backup-manager-safety-icon" aria-hidden="true">!</div>
+              <div>
+                <strong>Pemulihan tidak dilakukan satu klik.</strong>
+                <p>Sistem memeriksa lima sheet inti, memastikan Administrator aktif, meminta password, membuat backup pengaman, lalu menormalkan rumus dan validasi ke versi aktif.</p>
+              </div>
+            </section>
+
+            <section class="card backup-inspection-panel" id="backupInspectionPanel" hidden>
+              <div class="section-heading">
+                <div>
+                  <span class="eyebrow">Hasil pemeriksaan</span>
+                  <h2 id="backupInspectionTitle">Backup</h2>
+                  <p id="backupInspectionCaption">-</p>
+                </div>
+                <span class="system-status-pill" id="backupInspectionStatus" data-tone="loading">MEMERIKSA</span>
+              </div>
+              <div class="backup-inspection-grid">
+                <div><span>Schema</span><strong id="backupInspectionSchema">-</strong></div>
+                <div><span>Versi aplikasi</span><strong id="backupInspectionVersion">-</strong></div>
+                <div><span>Sheet inti</span><strong id="backupInspectionSheets">-</strong></div>
+                <div><span>Administrator aktif</span><strong id="backupInspectionAdmins">-</strong></div>
+                <div><span>Sel terpakai</span><strong id="backupInspectionCells">-</strong></div>
+                <div><span>Waktu pemeriksaan</span><strong id="backupInspectionTime">-</strong></div>
+              </div>
+              <div class="backup-inspection-issues" id="backupInspectionIssues" hidden></div>
+            </section>
+
+            <section class="card backup-manager-list-card">
+              <div class="section-heading backup-manager-list-heading">
+                <div>
+                  <h2>Daftar Backup Google Drive</h2>
+                  <p id="backupManagerListCaption">Memuat backup...</p>
+                </div>
+                <span class="status-chip info" id="backupManagerCount">0 file</span>
+              </div>
+              <div class="backup-manager-list" id="backupManagerList">
+                <div class="empty-state"><p>Memuat daftar backup...</p></div>
+              </div>
+            </section>
+          </div>
+        </section>
+
         <section class="page-section" data-page="pengaturan" aria-label="Pengaturan Aplikasi">
           <div class="section-stack app-settings-page">
             <section class="app-settings-toolbar">
@@ -1806,7 +2312,7 @@
                     <label class="form-field">
                       <span class="form-label">Durasi sesi login</span>
                       <span class="input-suffix-wrap">
-                        <input class="form-control" id="settingSessionHours" type="number" min="1" max="6" step="1" data-setting-admin>
+                        <input class="form-control" id="settingSessionHours" type="number" min="1" max="12" step="1" data-setting-admin>
                         <span class="input-suffix">jam</span>
                       </span>
                     </label>
@@ -2023,14 +2529,24 @@
                 Kembali ke Lainnya
               </button>
 
-              <button class="btn btn-primary" id="printProductionLabelButton" type="button">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
-                  <path d="M7 8V3h10v5"/>
-                  <path d="M7 17H4V9h16v8h-3"/>
-                  <path d="M7 13h10v8H7z"/>
-                </svg>
-                Cetak Label 58 mm
-              </button>
+              <div class="production-label-toolbar-actions">
+                <button class="btn btn-secondary" id="openProductionBatchDetailButton" type="button">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                    <path d="M3 5h5v5H3zM16 5h5v5h-5zM3 16h5v5H3z"/>
+                    <path d="M16 16h2v2h-2zM20 16h1v5h-5v-1M11 5h2M11 9h2M5 12v2M9 12h4v4M12 19h2"/>
+                  </svg>
+                  Buka Detail Web
+                </button>
+
+                <button class="btn btn-primary" id="printProductionLabelButton" type="button">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                    <path d="M7 8V3h10v5"/>
+                    <path d="M7 17H4V9h16v8h-3"/>
+                    <path d="M7 13h10v8H7z"/>
+                  </svg>
+                  Cetak Label 58 mm
+                </button>
+              </div>
             </section>
 
             <div class="production-label-layout">
@@ -2070,7 +2586,7 @@
                 </div>
 
                 <div class="production-label-printer-note">
-                  Gunakan kertas thermal <strong>58 mm</strong>, skala <strong>100%</strong>, margin <strong>None/Tidak Ada</strong>, dan matikan header serta footer browser.
+                  QR pada label membuka halaman web detail Batch yang selalu mengikuti data terbaru. Gunakan kertas thermal <strong>58 mm</strong>, skala <strong>100%</strong>, margin <strong>None/Tidak Ada</strong>, dan matikan header serta footer browser.
                 </div>
 
                 <section class="production-label-editor-card">
@@ -2142,6 +2658,14 @@
                       <span class="form-label">Ukuran logo</span>
                       <span class="input-suffix-wrap">
                         <input class="form-control" id="productionLabelLogoSize" type="number" min="8" max="18" step="1">
+                        <span class="input-suffix">mm</span>
+                      </span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Ukuran QR</span>
+                      <span class="input-suffix-wrap">
+                        <input class="form-control" id="productionLabelQrSize" type="number" min="16" max="28" step="1">
                         <span class="input-suffix">mm</span>
                       </span>
                     </label>
@@ -2232,10 +2756,441 @@
                     </div>
 
                     <div class="thermal-label-separator" data-label-separator aria-hidden="true">====================</div>
+
+                    <div class="thermal-production-qr-block">
+                      <div class="thermal-production-qr" id="productionLabelQrPreview" aria-label="QR Detail Batch"></div>
+                      <strong>SCAN DETAIL BATCH</strong>
+                      <span id="productionLabelQrCaption">Membuka halaman web produksi</span>
+                    </div>
+
+                    <div class="thermal-label-separator" data-label-separator aria-hidden="true">====================</div>
                   </article>
                 </div>
               </section>
             </div>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="label-bottling" aria-label="Label Bottling">
+          <div class="section-stack bottling-label-page">
+            <section class="production-label-toolbar">
+              <button class="btn btn-secondary" type="button" data-back-bottling-label>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                Kembali ke Lainnya
+              </button>
+
+              <button class="btn btn-primary" id="printBottlingLabelButton" type="button">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M7 8V3h10v5"/><path d="M7 17H4V9h16v8h-3"/><path d="M7 13h10v8H7z"/></svg>
+                Cetak Label 58 mm
+              </button>
+            </section>
+
+            <div class="bottling-label-layout">
+              <section class="card bottling-label-control-card">
+                <div class="section-heading production-label-heading">
+                  <div>
+                    <h2>Pilih Hasil Bottling</h2>
+                    <p>Data varian, Batch, tanggal bottling, dan kedaluwarsa diambil otomatis.</p>
+                  </div>
+                  <span class="status-chip info" id="bottlingLabelStatus">Memuat bottling</span>
+                </div>
+
+                <div class="bottling-label-primary-fields">
+                  <label class="form-field">
+                    <span class="form-label">Bottling ID</span>
+                    <select class="form-control" id="bottlingLabelSelect">
+                      <option value="">Memuat hasil bottling...</option>
+                    </select>
+                  </label>
+
+                  <label class="form-field">
+                    <span class="form-label">Jumlah label</span>
+                    <span class="input-suffix-wrap">
+                      <input class="form-control" id="bottlingLabelQuantity" type="number" min="1" max="500" step="1" value="1" inputmode="numeric">
+                      <span class="input-suffix">lembar</span>
+                    </span>
+                  </label>
+                </div>
+
+                <div class="production-label-data-summary bottling-label-summary">
+                  <div><span>Varian</span><strong id="bottlingLabelSummaryVariant">-</strong></div>
+                  <div><span>Volume Botol</span><strong id="bottlingLabelSummaryVolume">-</strong></div>
+                  <div><span>Tanggal Bottling</span><strong id="bottlingLabelSummaryDate">-</strong></div>
+                  <div><span>Tanggal Kedaluwarsa</span><strong id="bottlingLabelSummaryExpiry">-</strong></div>
+                </div>
+
+                <div class="production-label-printer-note">
+                  QR berisi identitas Bottling, Batch, varian, tanggal produksi, pH, Brix, dan kedaluwarsa. Gunakan kertas thermal <strong>58 mm</strong>, skala <strong>100%</strong>, margin <strong>None</strong>.
+                </div>
+
+                <section class="production-label-editor-card bottling-label-editor-card">
+                  <div class="production-label-editor-heading">
+                    <div>
+                      <span class="eyebrow">Pengaturan tampilan</span>
+                      <h3>Edit Label Bottling</h3>
+                      <p>Desain awal tetap seperti standar MERAMU. Pengaturan tersimpan otomatis pada perangkat ini.</p>
+                    </div>
+                    <button class="btn btn-secondary" id="resetBottlingLabelStyleButton" type="button">Reset</button>
+                  </div>
+
+                  <div class="production-label-editor-grid">
+                    <label class="form-field">
+                      <span class="form-label">Tata letak</span>
+                      <select class="form-control" id="bottlingLabelLayout">
+                        <option value="STANDARD">Standar</option>
+                        <option value="COMPACT">Ringkas</option>
+                        <option value="QR_TOP">QR di atas</option>
+                      </select>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Jenis font</span>
+                      <select class="form-control" id="bottlingLabelFontFamily">
+                        <option value="Arial, Helvetica, sans-serif">Arial</option>
+                        <option value="'Courier New', Courier, monospace">Courier New</option>
+                        <option value="Verdana, Geneva, sans-serif">Verdana</option>
+                        <option value="Tahoma, Geneva, sans-serif">Tahoma</option>
+                        <option value="'Trebuchet MS', Arial, sans-serif">Trebuchet MS</option>
+                        <option value="Georgia, serif">Georgia</option>
+                      </select>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Ukuran font isi</span>
+                      <span class="input-suffix-wrap"><input class="form-control" id="bottlingLabelBodyFontSize" type="number" min="7" max="15" step="0.5"><span class="input-suffix">pt</span></span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Ukuran nama varian</span>
+                      <span class="input-suffix-wrap"><input class="form-control" id="bottlingLabelVariantFontSize" type="number" min="14" max="30" step="1"><span class="input-suffix">pt</span></span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Ukuran logo</span>
+                      <span class="input-suffix-wrap"><input class="form-control" id="bottlingLabelLogoSize" type="number" min="7" max="18" step="1"><span class="input-suffix">mm</span></span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Ukuran QR</span>
+                      <span class="input-suffix-wrap"><input class="form-control" id="bottlingLabelQrSize" type="number" min="16" max="30" step="1"><span class="input-suffix">mm</span></span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Jarak antarbaris</span>
+                      <span class="input-suffix-wrap"><input class="form-control" id="bottlingLabelRowGap" type="number" min="0.5" max="3" step="0.1"><span class="input-suffix">mm</span></span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Lebar area isi</span>
+                      <span class="input-suffix-wrap"><input class="form-control" id="bottlingLabelContentWidth" type="number" min="46" max="54" step="1"><span class="input-suffix">mm</span></span>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Posisi logo</span>
+                      <select class="form-control" id="bottlingLabelLogoPosition">
+                        <option value="CENTER">Tengah</option>
+                        <option value="LEFT">Kiri</option>
+                        <option value="RIGHT">Kanan</option>
+                      </select>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Garis pemisah</span>
+                      <select class="form-control" id="bottlingLabelSeparatorStyle">
+                        <option value="EQUAL">Tanda sama (=)</option>
+                        <option value="DASH">Garis putus (-)</option>
+                        <option value="SOLID">Garis penuh</option>
+                      </select>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Tampilkan pH & Brix</span>
+                      <select class="form-control" id="bottlingLabelShowQuality">
+                        <option value="YES">Tampilkan</option>
+                        <option value="NO">Sembunyikan</option>
+                      </select>
+                    </label>
+
+                    <label class="form-field">
+                      <span class="form-label">Teks informasi</span>
+                      <select class="form-control" id="bottlingLabelLabelCase">
+                        <option value="NORMAL">Normal</option>
+                        <option value="UPPERCASE">Kapital semua</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div class="production-label-editor-footer">
+                    <span id="bottlingLabelStyleStatus">Pengaturan tersimpan otomatis di perangkat ini.</span>
+                  </div>
+                </section>
+              </section>
+
+              <section class="card production-label-preview-card bottling-label-preview-card">
+                <div class="section-heading production-label-preview-heading">
+                  <div>
+                    <h2>Pratinjau Label Produk</h2>
+                    <p>Label yang dicetak hanya area putih berukuran thermal 58 mm.</p>
+                  </div>
+                </div>
+
+                <div class="production-label-preview-stage bottling-label-preview-stage">
+                  <article class="thermal-bottling-label layout-standard" id="thermalBottlingLabel" aria-label="Pratinjau label bottling">
+                    <header class="bottling-label-brand" id="bottlingLabelBrand">
+                      <img src="assets/images/logo-meramu.png" alt="Logo MERAMU">
+                      <strong>MERAMU</strong>
+                    </header>
+
+                    <section class="bottling-label-product">
+                      <strong id="bottlingLabelPreviewVariant">VARIAN</strong>
+                      <span id="bottlingLabelPreviewVolume">250 ml</span>
+                    </section>
+
+                    <div class="bottling-label-separator" data-bottling-label-separator aria-hidden="true">====================</div>
+
+                    <div class="bottling-label-body">
+                      <div class="bottling-label-rows" id="bottlingLabelRows">
+                        <div><span>Batch ID</span><strong id="bottlingLabelPreviewBatch">-</strong></div>
+                        <div><span>Bottling ID</span><strong id="bottlingLabelPreviewId">-</strong></div>
+                        <div><span>Tgl Bottling</span><strong id="bottlingLabelPreviewDate">00/00/0000</strong></div>
+                        <div><span>EXP</span><strong id="bottlingLabelPreviewExpiry">00/00/0000</strong></div>
+                        <div class="bottling-label-quality-row"><span>pH / Brix</span><strong id="bottlingLabelPreviewQuality">- / -</strong></div>
+                      </div>
+
+                      <div class="bottling-label-qr-block">
+                        <div class="bottling-label-qr" id="bottlingLabelQrPreview" aria-label="QR Batch"></div>
+                        <span>Scan info batch</span>
+                      </div>
+                    </div>
+
+                    <div class="bottling-label-separator" data-bottling-label-separator aria-hidden="true">====================</div>
+                  </article>
+                </div>
+              </section>
+            </div>
+
+            <section class="card bottling-label-history-card">
+              <div class="section-heading bottling-label-history-heading">
+                <div>
+                  <h2>Riwayat Cetak Label</h2>
+                  <p>Riwayat tersimpan pada log sistem dan dapat digunakan untuk cetak ulang.</p>
+                </div>
+                <button class="btn btn-secondary" id="refreshBottlingLabelHistoryButton" type="button">Perbarui</button>
+              </div>
+              <div class="bottling-label-history-list" id="bottlingLabelHistoryList">
+                <div class="empty-state"><p>Memuat riwayat cetak...</p></div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="qr-kulkas" aria-label="QR Kulkas Dinamis">
+          <div class="section-stack fridge-manager-page">
+            <section class="fridge-manager-toolbar">
+              <div class="fridge-manager-toolbar-left">
+                <button class="btn btn-secondary" type="button" data-back-fridge-manager>
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                  Kembali ke Lainnya
+                </button>
+                <div>
+                  <span class="eyebrow">Customer traceability</span>
+                  <h2>QR Kulkas Dinamis</h2>
+                  <p>Satu QR permanen per kulkas. Ganti Bottling ID dari aplikasi tanpa mencetak QR baru.</p>
+                </div>
+              </div>
+
+              <div class="fridge-manager-toolbar-actions">
+                <button class="btn btn-secondary" id="reloadFridgeManagerButton" type="button">Perbarui</button>
+                <button class="btn btn-primary" id="addFridgeButton" type="button" data-fridge-admin>Tambah Kulkas</button>
+              </div>
+            </section>
+
+            <section class="fridge-manager-summary-grid">
+              <article class="card fridge-manager-summary-card">
+                <span>Total kulkas</span>
+                <strong id="fridgeManagerTotalCount">0</strong>
+                <small>QR permanen yang terdaftar</small>
+              </article>
+              <article class="card fridge-manager-summary-card is-active">
+                <span>Kulkas aktif</span>
+                <strong id="fridgeManagerActiveCount">0</strong>
+                <small>Dapat dibuka customer</small>
+              </article>
+              <article class="card fridge-manager-summary-card is-products">
+                <span>Lot dipajang</span>
+                <strong id="fridgeManagerDisplayedCount">0</strong>
+                <small>Bottling ID aktif di semua kulkas</small>
+              </article>
+              <article class="card fridge-manager-summary-card is-available">
+                <span>Lot tersedia</span>
+                <strong id="fridgeManagerAvailableCount">0</strong>
+                <small>Dapat dipilih untuk kulkas</small>
+              </article>
+              <article class="card fridge-manager-summary-card is-warning">
+                <span>Perlu perhatian</span>
+                <strong id="fridgeManagerIssueCount">0</strong>
+                <small>Lot habis atau kedaluwarsa</small>
+              </article>
+            </section>
+
+            <section class="card fridge-manager-guide-card">
+              <span class="fridge-manager-guide-icon">QR</span>
+              <div>
+                <strong>QR tidak perlu diganti saat Batch berubah.</strong>
+                <p>Petugas hanya mengganti Bottling ID pada tombol Kelola Isi. Halaman customer langsung membaca isi terbaru, status EXP, dan asal Batch F1.</p>
+              </div>
+            </section>
+
+            <section class="card fridge-manager-list-card">
+              <div class="section-heading fridge-manager-list-heading">
+                <div>
+                  <h2>Daftar Kulkas</h2>
+                  <p id="fridgeManagerListCaption">Memuat data kulkas...</p>
+                </div>
+                <span class="status-chip info" id="fridgeManagerVisibleCount">0 kulkas</span>
+              </div>
+
+              <div class="fridge-manager-list" id="fridgeManagerList">
+                <div class="empty-state"><p>Memuat QR Kulkas...</p></div>
+              </div>
+            </section>
+
+            <section class="card fridge-manager-info-grid">
+              <div>
+                <strong>Untuk customer</strong>
+                <p>Halaman publik menampilkan varian, Bottling ID, Batch F1, tanggal Bottling, EXP, dan status keamanan produk. HPP, stok internal, dan data karyawan tidak ditampilkan.</p>
+              </div>
+              <div>
+                <strong>Untuk petugas</strong>
+                <p>Administrator membuat master kulkas. Administrator atau Kasir mengganti isi. Produksi dapat melihat dan mencetak QR, tetapi tidak mengubah penempatan produk.</p>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-page="stok-lot" aria-label="Stok Lot dan FEFO">
+          <div class="section-stack lot-stock-page">
+            <section class="lot-stock-toolbar">
+              <div class="lot-stock-toolbar-left">
+                <button class="btn btn-secondary" type="button" data-back-lot-stock>
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                  Kembali ke Lainnya
+                </button>
+                <div>
+                  <span class="eyebrow">Traceability produk</span>
+                  <h2>Stok Lot & FEFO</h2>
+                  <p>Stok produk dihitung per Bottling ID dan dijual dari tanggal EXP terdekat.</p>
+                </div>
+              </div>
+              <button class="btn btn-primary" id="reloadLotStockButton" type="button">Perbarui Data</button>
+            </section>
+
+            <section class="lot-stock-summary-grid">
+              <article class="card lot-stock-summary-card">
+                <span>Lot aktif</span>
+                <strong id="lotStockActiveLots">0</strong>
+                <small>Bottling ID yang masih memiliki stok</small>
+              </article>
+              <article class="card lot-stock-summary-card is-sellable">
+                <span>Siap dijual</span>
+                <strong id="lotStockSellableQty">0</strong>
+                <small>Botol aman untuk transaksi</small>
+              </article>
+              <article class="card lot-stock-summary-card is-warning">
+                <span>Mendekati EXP</span>
+                <strong id="lotStockExpiringLots">0</strong>
+                <small>Lot H-7 atau lebih dekat</small>
+              </article>
+              <article class="card lot-stock-summary-card is-danger">
+                <span>Kedaluwarsa</span>
+                <strong id="lotStockExpiredQty">0</strong>
+                <small>Diblokir otomatis dari penjualan</small>
+              </article>
+              <article class="card lot-stock-summary-card is-untracked">
+                <span>Belum terlacak</span>
+                <strong id="lotStockUntrackedQty">0</strong>
+                <small>Stok lama tanpa Bottling ID/EXP</small>
+              </article>
+              <article class="card lot-stock-summary-card is-match">
+                <span>Selisih rekonsiliasi</span>
+                <strong id="lotStockMismatchCount">0</strong>
+                <small>Produk dengan saldo jurnal berbeda</small>
+              </article>
+            </section>
+
+            <section class="card lot-stock-reconciliation-card" id="lotStockReconciliationCard" hidden>
+              <div class="lot-stock-reconciliation-icon">!</div>
+              <div>
+                <strong>Saldo lot dan stok produk belum sama.</strong>
+                <p id="lotStockReconciliationMessage">Periksa rincian rekonsiliasi sebelum melakukan penjualan berikutnya.</p>
+              </div>
+            </section>
+
+            <section class="card lot-stock-filter-card">
+              <div class="lot-stock-filter-grid">
+                <label class="form-field lot-stock-search-field">
+                  <span class="form-label">Cari lot</span>
+                  <input class="form-control" id="lotStockSearch" type="search" placeholder="Bottling ID, Batch ID, atau produk">
+                </label>
+                <label class="form-field">
+                  <span class="form-label">Varian</span>
+                  <select class="form-control" id="lotStockVariant">
+                    <option value="">Semua varian</option>
+                    <option value="ORIGINAL">Original</option>
+                    <option value="TELANG">Telang</option>
+                    <option value="ROSELLA">Rosella</option>
+                  </select>
+                </label>
+                <label class="form-field">
+                  <span class="form-label">Status</span>
+                  <select class="form-control" id="lotStockStatus">
+                    <option value="AKTIF">Semua lot aktif</option>
+                    <option value="">Semua status</option>
+                    <option value="AMAN">Aman</option>
+                    <option value="PERHATIAN">Perhatian</option>
+                    <option value="KRITIS">Kritis</option>
+                    <option value="KEDALUWARSA">Kedaluwarsa</option>
+                    <option value="BELUM TERLACAK">Belum terlacak</option>
+                    <option value="HABIS">Habis</option>
+                  </select>
+                </label>
+              </div>
+              <div class="lot-stock-filter-footer">
+                <span id="lotStockGeneratedAt">Memuat stok lot...</span>
+                <button class="section-text-action" id="resetLotStockFilters" type="button">Reset Filter</button>
+              </div>
+            </section>
+
+            <section class="card lot-stock-list-card">
+              <div class="section-heading lot-stock-list-heading">
+                <div>
+                  <h2>Rincian Bottling ID</h2>
+                  <p id="lotStockListCaption">Memuat data lot...</p>
+                </div>
+                <span class="status-chip info" id="lotStockVisibleCount">0 lot</span>
+              </div>
+              <div class="lot-stock-list" id="lotStockList">
+                <div class="empty-state"><p>Memuat stok per Bottling ID...</p></div>
+              </div>
+            </section>
+
+            <section class="card lot-stock-fefo-info">
+              <div>
+                <span class="lot-stock-info-number">1</span>
+                <strong>Bottling membentuk lot</strong>
+                <p>Setiap hasil bottling menjadi stok dengan Bottling ID, Batch ID, HPP, dan tanggal EXP.</p>
+              </div>
+              <div>
+                <span class="lot-stock-info-number">2</span>
+                <strong>Kasir tidak memilih lot</strong>
+                <p>Saat penjualan, backend otomatis mengambil stok dengan EXP paling dekat menggunakan FEFO.</p>
+              </div>
+              <div>
+                <span class="lot-stock-info-number">3</span>
+                <strong>Produk EXP diblokir</strong>
+                <p>Lot kedaluwarsa tetap terlihat sebagai stok fisik, tetapi tidak dapat dialokasikan ke penjualan.</p>
+              </div>
+            </section>
           </div>
         </section>
 
@@ -2247,6 +3202,52 @@
               </div>
 
               <div class="module-grid">
+                <button class="module-card operational-alert-module-card" type="button" data-open-operational-alerts>
+                  <span class="module-icon notification">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
+                      <path d="M10 21h4"/>
+                    </svg>
+                  </span>
+                  <span class="module-copy">
+                    <strong>Pusat Notifikasi</strong>
+                    <span>Batch, stok, EXP, backup, dan kas</span>
+                  </span>
+                  <span class="operational-alert-module-count" id="operationalAlertCardCount">0</span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card lot-stock-module-card" type="button" data-open-lot-stock>
+                  <span class="module-icon lot-stock-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path d="M4 7h16M6 7v13h12V7M9 4h6l2 3H7l2-3Z"/>
+                      <path d="M9 11h6M9 15h4"/>
+                    </svg>
+                  </span>
+                  <span class="module-copy">
+                    <strong>Stok Lot & FEFO</strong>
+                    <span>Sisa per Bottling ID dan urutan EXP</span>
+                  </span>
+                  <span class="lot-stock-card-count" id="lotStockCardCount">0</span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card fridge-manager-module-card" type="button" data-open-fridge-manager>
+                  <span class="module-icon fridge-manager-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <rect x="4" y="2.5" width="10" height="19" rx="2"/>
+                      <path d="M4 9h10M11 5.5v1.8M11 12v2"/>
+                      <path d="M17 5h4v4h-4zM17 15h4v4h-4zM16 11h2v2h-2zM20 11h1v2"/>
+                    </svg>
+                  </span>
+                  <span class="module-copy">
+                    <strong>QR Kulkas</strong>
+                    <span>QR permanen dan pergantian Bottling ID</span>
+                  </span>
+                  <span class="fridge-manager-card-count" id="fridgeManagerCardCount">0</span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
                 <button class="module-card" type="button" data-open-reports>
                   <span class="module-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></span>
                   <span class="module-copy"><strong>Laporan</strong><span>Penjualan, laba, cashflow, dan HPP</span></span>
@@ -2271,9 +3272,35 @@
                   <span class="chevron" aria-hidden="true"></span>
                 </button>
 
+                <button class="module-card" type="button" data-open-device-sessions>
+                  <span class="module-icon session-device-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <rect x="3" y="4" width="18" height="12" rx="2"/>
+                      <path d="M8 20h8M12 16v4"/>
+                      <path d="m16.5 8.5 1.5 1.5 2.5-3"/>
+                    </svg>
+                  </span>
+                  <span class="module-copy"><strong>Perangkat & Sesi</strong><span>Perangkat aktif dan kontrol login</span></span>
+                  <span class="device-session-card-count" id="deviceSessionCardCount">0</span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
                 <button class="module-card" type="button" data-open-app-settings>
                   <span class="module-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg></span>
                   <span class="module-copy"><strong>Pengaturan</strong><span>EXP, hari fermentasi, dan keamanan</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-backup-manager>
+                  <span class="module-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <ellipse cx="12" cy="5" rx="7" ry="3"/>
+                      <path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5"/>
+                      <path d="M5 11v6c0 1.7 3.1 3 7 3 1.1 0 2.1-.1 3-.3"/>
+                      <path d="m17 15 2 2 3-4"/>
+                    </svg>
+                  </span>
+                  <span class="module-copy"><strong>Backup & Pemulihan</strong><span>Periksa, unduh, dan pulihkan database</span></span>
                   <span class="chevron" aria-hidden="true"></span>
                 </button>
 
@@ -2287,6 +3314,18 @@
                     </svg>
                   </span>
                   <span class="module-copy"><strong>Label Print</strong><span>Cetak label batch produksi thermal 58 mm</span></span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </button>
+
+                <button class="module-card" type="button" data-open-bottling-label>
+                  <span class="module-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path d="M9 3h6v4l2 3v10H7V10l2-3V3Z"/>
+                      <path d="M8 13h8M10 16h4"/>
+                      <path d="M18.5 4.5h2v2h-2zM18.5 8.5h2v2h-2zM18.5 12.5h2v2h-2z"/>
+                    </svg>
+                  </span>
+                  <span class="module-copy"><strong>Label Bottling</strong><span>EXP, QR Batch, dan cetak thermal 58 mm</span></span>
                   <span class="chevron" aria-hidden="true"></span>
                 </button>
               </div>
@@ -2771,6 +3810,77 @@
         </button>
       </footer>
     </div>
+  </section>
+
+  <button class="sheet-backdrop" id="cashClosingDetailBackdrop" type="button" inert aria-label="Tutup detail kas" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet cash-closing-detail-sheet" id="cashClosingDetailSheet" role="dialog" inert aria-modal="true" aria-labelledby="cashClosingDetailTitle" aria-hidden="true">
+    <div class="sheet-fixed-header cash-closing-detail-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker">Riwayat Tutup Kas</span>
+          <h2 id="cashClosingDetailTitle">Detail Tutup Kas</h2>
+          <p id="cashClosingDetailSubtitle">Rekonsiliasi kas dan audit persetujuan.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeCashClosingDetail" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <div class="batch-form-layout">
+      <div class="sheet-scroll-area">
+        <div class="cash-closing-detail-body" id="cashClosingDetailBody">
+          <p class="recipe-empty">Pilih riwayat untuk melihat detail.</p>
+        </div>
+      </div>
+      <footer class="sheet-action-footer cash-closing-detail-footer">
+        <button class="btn btn-secondary" id="printCashClosingDetailButton" type="button">Cetak 58 mm</button>
+        <button class="btn btn-primary" id="approveCashClosingButton" type="button" hidden>Setujui</button>
+        <button class="btn btn-danger" id="reopenCashClosingButton" type="button" hidden>Buka Kembali</button>
+        <button class="btn btn-secondary" id="closeCashClosingDetailFooter" type="button">Tutup</button>
+      </footer>
+    </div>
+  </section>
+
+  <button class="sheet-backdrop" id="cashClosingReopenBackdrop" type="button" inert aria-label="Tutup form buka kembali kas" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet cash-closing-reopen-sheet" id="cashClosingReopenSheet" role="dialog" inert aria-modal="true" aria-labelledby="cashClosingReopenTitle" aria-hidden="true">
+    <div class="sheet-fixed-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker">Otorisasi Administrator</span>
+          <h2 id="cashClosingReopenTitle">Buka Kembali Tutup Kas</h2>
+          <p>Kas dapat menerima transaksi dan ditutup ulang setelah proses ini.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeCashClosingReopen" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="cashClosingReopenForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <div class="transaction-void-warning">
+            <strong>Riwayat lama tetap tersimpan.</strong>
+            <span>Status berubah menjadi Dibuka Kembali. Setelah koreksi selesai, pengguna wajib membuat Tutup Kas baru.</span>
+          </div>
+          <label class="form-field">
+            <span class="form-label">Alasan buka kembali</span>
+            <textarea class="form-control" id="cashClosingReopenReason" rows="4" minlength="10" maxlength="300" placeholder="Contoh: Ada penjualan tunai yang belum tercatat." required></textarea>
+            <small class="form-help">Minimal 10 karakter dan disimpan pada audit trail.</small>
+          </label>
+          <p class="form-error" id="cashClosingReopenError" role="alert"></p>
+        </div>
+      </div>
+      <footer class="sheet-action-footer cash-closing-reopen-footer">
+        <button class="btn btn-secondary" id="cancelCashClosingReopen" type="button">Kembali</button>
+        <button class="btn btn-danger" id="submitCashClosingReopen" type="submit">Buka Kembali Kas</button>
+      </footer>
+    </form>
   </section>
 
   <button class="sheet-backdrop" id="transactionHistoryDetailBackdrop" type="button" inert aria-label="Tutup detail transaksi" tabindex="-1"></button>
@@ -3542,11 +4652,11 @@
               <span>Total dibayar</span>
               <strong id="saleGrandTotal">Rp0</strong>
             </div>
-            <div>
+            <div data-sale-financial-sensitive>
               <span>HPP produk</span>
               <strong id="saleHpp">Rp0</strong>
             </div>
-            <div class="is-profit">
+            <div class="is-profit" data-sale-financial-sensitive>
               <span>Estimasi laba kotor</span>
               <strong id="saleGrossProfit">Rp0</strong>
             </div>
@@ -3558,7 +4668,7 @@
           </label>
 
           <div class="sale-form-info">
-            Harga jual otomatis mengikuti Master Item dan masih dapat disesuaikan per produk. Penjualan ditolak bila stok tidak cukup.
+            Harga jual mengikuti Master Item. Lot dipilih otomatis dengan FEFO, produk kedaluwarsa diblokir, dan rincian Bottling ID dicatat pada jurnal lot.
           </div>
 
           <p class="form-error" id="saleFormError" role="alert"></p>
@@ -3927,6 +5037,205 @@
     </form>
   </section>
 
+  <button class="sheet-backdrop" id="deviceSessionRevokeBackdrop" type="button" inert aria-label="Tutup keluar paksa perangkat" tabindex="-1"></button>
+  <section class="bottom-sheet workflow-sheet device-session-revoke-sheet" id="deviceSessionRevokeSheet" role="dialog" inert aria-modal="true" aria-labelledby="deviceSessionRevokeTitle" aria-hidden="true">
+    <div class="sheet-fixed-header device-session-revoke-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div><span class="sheet-kicker">Keamanan sesi</span><h2 id="deviceSessionRevokeTitle">Keluarkan Perangkat</h2><p id="deviceSessionRevokeSubtitle">Sesi akan berhenti pada permintaan berikutnya.</p></div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeDeviceSessionRevokeSheet" type="button" aria-label="Tutup"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      </header>
+    </div>
+    <form id="deviceSessionRevokeForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <input id="deviceSessionRevokeMode" type="hidden" value="single">
+          <input id="deviceSessionRevokeSessionId" type="hidden">
+          <input id="deviceSessionRevokeUsername" type="hidden">
+          <section class="device-session-revoke-summary">
+            <div><span>Target</span><strong id="deviceSessionRevokeTarget">-</strong></div>
+            <div><span>Pengguna</span><strong id="deviceSessionRevokeUser">-</strong></div>
+          </section>
+          <div class="device-session-revoke-warning"><strong>Akses akan dihentikan</strong><span>Perangkat akan diminta login kembali. Data transaksi yang sudah tersimpan tidak terhapus.</span></div>
+          <label class="form-field"><span class="form-label">Alasan keluar paksa</span><textarea class="form-control" id="deviceSessionRevokeReason" rows="4" minlength="8" maxlength="200" placeholder="Contoh: perangkat tidak dikenali atau pergantian petugas" required></textarea><small class="form-help">Minimal 8 karakter dan masuk ke audit aktivitas.</small></label>
+          <label class="transaction-void-confirmation"><input id="deviceSessionRevokeConfirmed" type="checkbox"><span>Saya memastikan perangkat atau sesi ini memang harus dikeluarkan.</span></label>
+          <p class="form-error" id="deviceSessionRevokeError" role="alert"></p>
+        </div>
+      </div>
+      <footer class="sheet-action-footer device-session-revoke-footer"><button class="btn btn-secondary" id="cancelDeviceSessionRevokeButton" type="button">Batal</button><button class="btn btn-danger" id="submitDeviceSessionRevokeButton" type="submit">Keluar Paksa</button></footer>
+    </form>
+  </section>
+
+  <button class="sheet-backdrop" id="backupRestoreBackdrop" type="button" inert aria-label="Tutup pemulihan database" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet backup-restore-sheet" id="backupRestoreSheet" role="dialog" inert aria-modal="true" aria-labelledby="backupRestoreTitle" aria-hidden="true">
+    <div class="sheet-fixed-header backup-restore-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker">Tindakan berisiko tinggi</span>
+          <h2 id="backupRestoreTitle">Pulihkan Database</h2>
+          <p id="backupRestoreSubtitle">Pilih backup yang sudah lolos pemeriksaan.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeBackupRestoreSheet" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="backupRestoreForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <section class="backup-restore-summary">
+            <div><span>File backup</span><strong id="backupRestoreFileName">-</strong></div>
+            <div><span>Dibuat</span><strong id="backupRestoreCreatedAt">-</strong></div>
+            <div><span>Schema</span><strong id="backupRestoreSchema">-</strong></div>
+            <div><span>Sheet inti</span><strong id="backupRestoreSheets">-</strong></div>
+          </section>
+
+          <div class="backup-restore-warning">
+            <strong>Data aktif akan diganti dengan isi backup.</strong>
+            <span>Sebelum proses dimulai, sistem otomatis membuat backup pengaman terbaru. Pengguna harus login kembali setelah pemulihan selesai.</span>
+          </div>
+
+          <label class="form-field">
+            <span class="form-label">Password Administrator</span>
+            <input class="form-control" id="backupRestorePassword" type="password" autocomplete="current-password" required>
+          </label>
+
+          <label class="form-field">
+            <span class="form-label">Ketik konfirmasi</span>
+            <input class="form-control backup-restore-confirm-input" id="backupRestoreConfirmationText" type="text" autocomplete="off" placeholder="PULIHKAN MERAMU" required>
+            <small class="form-help">Harus ditulis tepat: PULIHKAN MERAMU</small>
+          </label>
+
+          <label class="transaction-void-confirmation backup-restore-confirmation">
+            <input id="backupRestoreConfirmed" type="checkbox">
+            <span>Saya memahami data aktif akan diganti, kredensial pengguna dapat kembali ke kondisi saat backup dibuat, dan login ulang wajib dilakukan.</span>
+          </label>
+
+          <div class="backup-restore-process-list">
+            <div><span>1</span><strong>Periksa file backup</strong></div>
+            <div><span>2</span><strong>Buat backup pengaman database aktif</strong></div>
+            <div><span>3</span><strong>Pulihkan lima sheet inti</strong></div>
+            <div><span>4</span><strong>Perbarui rumus, validasi, dan kesehatan sistem</strong></div>
+          </div>
+
+          <p class="form-error" id="backupRestoreError" role="alert"></p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer backup-restore-footer">
+        <button class="btn btn-secondary" id="cancelBackupRestoreButton" type="button">Batal</button>
+        <button class="btn btn-danger" id="submitBackupRestoreButton" type="submit">Pulihkan Database</button>
+      </footer>
+    </form>
+  </section>
+
+  <button class="sheet-backdrop" id="fridgeEditorBackdrop" type="button" inert aria-label="Tutup form kulkas" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet fridge-editor-sheet" id="fridgeEditorSheet" role="dialog" inert aria-modal="true" aria-labelledby="fridgeEditorTitle" aria-hidden="true">
+    <div class="sheet-fixed-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker">Master QR Kulkas</span>
+          <h2 id="fridgeEditorTitle">Tambah Kulkas</h2>
+          <p>QR akan tetap sama meskipun isi Bottling ID diganti.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeFridgeEditorSheet" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="fridgeEditorForm" class="batch-form-layout" novalidate>
+      <input id="fridgeEditorId" type="hidden">
+
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <label class="form-field">
+            <span class="form-label">Nama Kulkas</span>
+            <input class="form-control" id="fridgeEditorName" type="text" maxlength="80" placeholder="Contoh: Kulkas Depan" required>
+          </label>
+
+          <label class="form-field">
+            <span class="form-label">Lokasi</span>
+            <input class="form-control" id="fridgeEditorLocation" type="text" maxlength="120" placeholder="Contoh: Area Customer Meramu Center" required>
+          </label>
+
+          <label class="form-field">
+            <span class="form-label">Catatan untuk customer</span>
+            <textarea class="form-control" id="fridgeEditorNote" rows="4" maxlength="260" placeholder="Contoh: Simpan tetap dingin dan konsumsi maksimal 3 hari setelah dibuka."></textarea>
+          </label>
+
+          <label class="transaction-void-confirmation fridge-editor-active">
+            <input id="fridgeEditorActive" type="checkbox" checked>
+            <span>Kulkas aktif dan halaman customer dapat dibuka.</span>
+          </label>
+
+          <p class="form-error" id="fridgeEditorError" role="alert"></p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer fridge-editor-footer">
+        <button class="btn btn-secondary" id="cancelFridgeEditorButton" type="button">Batal</button>
+        <button class="btn btn-primary" id="submitFridgeEditorButton" type="submit">Simpan Kulkas</button>
+      </footer>
+    </form>
+  </section>
+
+  <button class="sheet-backdrop" id="fridgeContentsBackdrop" type="button" inert aria-label="Tutup pengaturan isi kulkas" tabindex="-1"></button>
+
+  <section class="bottom-sheet workflow-sheet fridge-contents-sheet" id="fridgeContentsSheet" role="dialog" inert aria-modal="true" aria-labelledby="fridgeContentsTitle" aria-hidden="true">
+    <div class="sheet-fixed-header">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="sheet-kicker">Pergantian Bottling ID</span>
+          <h2 id="fridgeContentsTitle">Kelola Isi Kulkas</h2>
+          <p id="fridgeContentsSubtitle">Pilih produk yang sedang dipajang.</p>
+        </div>
+        <button class="btn btn-icon btn-secondary sheet-close-button" id="closeFridgeContentsSheet" type="button" aria-label="Tutup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <form id="fridgeContentsForm" class="batch-form-layout" novalidate>
+      <div class="sheet-scroll-area">
+        <div class="form-stack">
+          <section class="fridge-contents-current-summary">
+            <div><span>Kulkas</span><strong id="fridgeContentsName">-</strong></div>
+            <div><span>Lokasi</span><strong id="fridgeContentsLocation">-</strong></div>
+            <div><span>Dipilih</span><strong id="fridgeContentsSelectedCount">0 lot</strong></div>
+          </section>
+
+          <label class="form-field">
+            <span class="form-label">Cari Bottling ID atau varian</span>
+            <input class="form-control" id="fridgeContentsSearch" type="search" placeholder="Original, Rosella, BTL-...">
+          </label>
+
+          <div class="fridge-contents-lot-list" id="fridgeContentsLotList">
+            <div class="empty-state"><p>Memuat lot tersedia...</p></div>
+          </div>
+
+          <div class="fridge-contents-warning">
+            <strong>Penempatan tidak memindahkan stok.</strong>
+            <span>Fitur ini hanya menentukan informasi yang tampil pada QR customer. Pengurangan stok tetap mengikuti Penjualan, Pemakaian Stok, dan Stok Opname.</span>
+          </div>
+
+          <p class="form-error" id="fridgeContentsError" role="alert"></p>
+        </div>
+      </div>
+
+      <footer class="sheet-action-footer fridge-editor-footer">
+        <button class="btn btn-secondary" id="cancelFridgeContentsButton" type="button">Batal</button>
+        <button class="btn btn-primary" id="submitFridgeContentsButton" type="submit">Simpan Isi Kulkas</button>
+      </footer>
+    </form>
+  </section>
+
   <aside class="connectivity-banner" id="offlineBanner" hidden role="status" aria-live="polite">
     <span class="connectivity-banner-icon" aria-hidden="true">!</span>
     <span>
@@ -3961,8 +5270,9 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="assets/js/config.js?v=1.31.0"></script>
-  <script src="assets/js/api.js?v=1.31.0"></script>
-  <script src="assets/js/app.js?v=1.31.0"></script>
+  <script src="assets/js/config.js?v=1.36.5"></script>
+  <script src="assets/js/api.js?v=1.36.5"></script>
+  <script src="assets/js/vendor/qrcode.min.js?v=1.36.5"></script>
+  <script src="assets/js/app.js?v=1.36.5"></script>
 </body>
 </html>

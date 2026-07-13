@@ -34,6 +34,12 @@
     selectedTransactionHistoryKey: '',
     selectedTransactionGroup: null,
     transactionVoidSubmitting: false,
+    cashClosingData: null,
+    cashClosingLoading: false,
+    cashClosingSubmitting: false,
+    cashClosingActionSubmitting: false,
+    selectedCashClosingReference: '',
+    cashClosingHistoryStatus: '',
     reportActiveTab: 'ringkasan',
     reportPeriodPreset: 'bulan-ini',
     reportData: null,
@@ -61,7 +67,51 @@
     refreshingForUpdate: false,
     authExpiryHandled: false,
     selectedLabelBatchId: '',
-    productionLabelStyle: null
+    productionLabelStyle: null,
+    selectedBottlingLabelId: '',
+    bottlingLabelStyle: null,
+    bottlingLabelHistory: [],
+    bottlingLabelHistoryLoaded: false,
+    bottlingLabelHistoryLoading: false,
+    bottlingLabelPrinting: false,
+    backupManagerData: null,
+    backupManagerLoading: false,
+    backupManagerActionSubmitting: false,
+    selectedBackupFileId: '',
+    selectedBackupInspection: null,
+    restoreBackupSubmitting: false,
+    operationalAlertsData: null,
+    operationalAlertsLoaded: false,
+    operationalAlertsLoading: false,
+    operationalAlertActionSubmitting: false,
+    operationalAlertSearch: '',
+    operationalAlertCategory: '',
+    operationalAlertSeverity: '',
+    operationalAlertReadState: '',
+    deviceSessionsData: null,
+    deviceSessionsLoaded: false,
+    deviceSessionsLoading: false,
+    deviceSessionActionSubmitting: false,
+    deviceSessionSearch: '',
+    deviceSessionUserFilter: '',
+    deviceSessionStatusFilter: 'ACTIVE',
+    sessionActivityTimer: null,
+    lastSessionActivityPersistAt: 0,
+    lastSessionHeartbeatAt: 0,
+    sessionHeartbeatRunning: false,
+    lotStockData: null,
+    lotStockLoaded: false,
+    lotStockLoading: false,
+    lotStockSearch: '',
+    lotStockVariant: '',
+    lotStockStatus: 'AKTIF',
+    fridgeManagerData: null,
+    fridgeManagerLoaded: false,
+    fridgeManagerLoading: false,
+    fridgeManagerSubmitting: false,
+    selectedFridgeId: '',
+    fridgeContentsSearch: '',
+    fridgeSelectedLotIds: []
   };
 
   const pageNames = {
@@ -70,12 +120,19 @@
     'riwayat-produksi': 'Riwayat Produksi',
     transaksi: 'Transaksi',
     'riwayat-transaksi': 'Riwayat Transaksi',
+    'tutup-kas': 'Tutup Kas Harian',
     laporan: 'Laporan Usaha',
     stok: 'Stok',
     'stok-detail': 'Rincian Stok',
     'master-item': 'Master Item & Harga',
     'master-resep': 'Master Resep',
     'label-print': 'Label Print',
+    'label-bottling': 'Label Bottling',
+    'backup-pemulihan': 'Backup & Pemulihan',
+    notifikasi: 'Pusat Notifikasi',
+    'perangkat-sesi': 'Perangkat & Sesi Login',
+    'stok-lot': 'Stok Lot & FEFO',
+    'qr-kulkas': 'QR Kulkas Dinamis',
     pengaturan: 'Pengaturan Aplikasi',
     lainnya: 'Lainnya'
   };
@@ -94,6 +151,7 @@
     fillDynamicText();
     registerServiceWorker();
     monitorConnectivity();
+    initializeLocalSessionSecurity();
 
     window.setTimeout(() => {
       document.getElementById('splashScreen')?.classList.add('is-hidden');
@@ -127,6 +185,21 @@
     document.querySelectorAll('[data-open-app-settings]:not(.module-card)').forEach((button) => {
       button.addEventListener('click', openAppSettingsPage);
     });
+    document.querySelectorAll('[data-open-backup-manager]:not(.module-card)').forEach((button) => {
+      button.addEventListener('click', openBackupManagerPage);
+    });
+    document.querySelectorAll('[data-open-operational-alerts]:not(.module-card)').forEach((button) => {
+      button.addEventListener('click', openOperationalAlertsPage);
+    });
+    document.querySelectorAll('[data-open-lot-stock]:not(.module-card)').forEach((button) => {
+      button.addEventListener('click', openLotStockPage);
+    });
+    document.querySelectorAll('[data-open-fridge-manager]:not(.module-card)').forEach((button) => {
+      button.addEventListener('click', openFridgeManagerPage);
+    });
+    document.querySelectorAll('[data-open-device-sessions]:not(.module-card)').forEach((button) => {
+      button.addEventListener('click', openDeviceSessionsPage);
+    });
     document.querySelectorAll('[data-open-app-users]:not(.module-card)').forEach((button) => {
       button.addEventListener('click', openAppUsersPage);
     });
@@ -144,6 +217,7 @@
       renderProductionLabelPreview();
     });
     document.getElementById('printProductionLabelButton')?.addEventListener('click', printProductionLabel58mm);
+    document.getElementById('openProductionBatchDetailButton')?.addEventListener('click', openSelectedProductionBatchDetail);
     [
       'productionLabelFontFamily',
       'productionLabelBodyFontSize',
@@ -152,6 +226,7 @@
       'productionLabelRowGap',
       'productionLabelContentWidth',
       'productionLabelLogoSize',
+      'productionLabelQrSize',
       'productionLabelValueWeight',
       'productionLabelLogoPosition',
       'productionLabelValueAlign',
@@ -163,6 +238,75 @@
       element?.addEventListener('change', handleProductionLabelStyleChange);
     });
     document.getElementById('resetProductionLabelStyleButton')?.addEventListener('click', resetProductionLabelStyle);
+    document.querySelectorAll('[data-open-bottling-label]:not(.module-card)').forEach((button) => {
+      button.addEventListener('click', openBottlingLabelPage);
+    });
+    document.querySelectorAll('[data-back-bottling-label]').forEach((button) => {
+      button.addEventListener('click', () => navigate('lainnya'));
+    });
+    document.getElementById('bottlingLabelSelect')?.addEventListener('change', (event) => {
+      state.selectedBottlingLabelId = event.currentTarget.value;
+      renderBottlingLabelPreview();
+    });
+    document.getElementById('bottlingLabelQuantity')?.addEventListener('input', normalizeBottlingLabelQuantity);
+    document.getElementById('printBottlingLabelButton')?.addEventListener('click', printBottlingLabels58mm);
+    document.getElementById('refreshBottlingLabelHistoryButton')?.addEventListener('click', () => loadBottlingLabelHistory(true));
+    [
+      'bottlingLabelLayout',
+      'bottlingLabelFontFamily',
+      'bottlingLabelBodyFontSize',
+      'bottlingLabelVariantFontSize',
+      'bottlingLabelLogoSize',
+      'bottlingLabelQrSize',
+      'bottlingLabelRowGap',
+      'bottlingLabelContentWidth',
+      'bottlingLabelLogoPosition',
+      'bottlingLabelSeparatorStyle',
+      'bottlingLabelShowQuality',
+      'bottlingLabelLabelCase'
+    ].forEach((id) => {
+      const element = document.getElementById(id);
+      element?.addEventListener('input', handleBottlingLabelStyleChange);
+      element?.addEventListener('change', handleBottlingLabelStyleChange);
+    });
+    document.getElementById('resetBottlingLabelStyleButton')?.addEventListener('click', resetBottlingLabelStyle);
+    document.querySelectorAll('[data-open-cash-closing]:not(.module-card)').forEach((button) => {
+      button.addEventListener('click', openCashClosingPage);
+    });
+    document.querySelectorAll('[data-back-cash-closing]').forEach((button) => {
+      button.addEventListener('click', () => navigate('transaksi'));
+    });
+    document.getElementById('refreshCashClosingButton')?.addEventListener('click', () => loadCashClosingData(true));
+    document.getElementById('cashClosingDate')?.addEventListener('change', () => loadCashClosingData(true));
+    document.getElementById('cashClosingCashier')?.addEventListener('change', () => loadCashClosingData(true));
+    document.getElementById('cashClosingOpeningBalance')?.addEventListener('input', handleCashClosingMoneyInput);
+    document.getElementById('cashClosingPhysicalCash')?.addEventListener('input', handleCashClosingMoneyInput);
+    document.getElementById('cashClosingForm')?.addEventListener('submit', handleCashClosingSubmit);
+    document.getElementById('cashClosingHistoryStatus')?.addEventListener('change', (event) => {
+      state.cashClosingHistoryStatus = event.currentTarget.value;
+      renderCashClosingHistory();
+    });
+    document.getElementById('cashClosingActiveDetailButton')?.addEventListener('click', () => {
+      const reference = state.cashClosingData?.activeClosure?.reference;
+      if (reference) openCashClosingDetail(reference);
+    });
+    document.getElementById('cashClosingActivePrintButton')?.addEventListener('click', () => {
+      const record = state.cashClosingData?.activeClosure;
+      if (record) printCashClosing58mm(record);
+    });
+    document.getElementById('closeCashClosingDetail')?.addEventListener('click', closeCashClosingDetail);
+    document.getElementById('closeCashClosingDetailFooter')?.addEventListener('click', closeCashClosingDetail);
+    document.getElementById('cashClosingDetailBackdrop')?.addEventListener('click', closeCashClosingDetail);
+    document.getElementById('printCashClosingDetailButton')?.addEventListener('click', () => {
+      const record = selectedCashClosingRecord();
+      if (record) printCashClosing58mm(record);
+    });
+    document.getElementById('approveCashClosingButton')?.addEventListener('click', approveSelectedCashClosing);
+    document.getElementById('reopenCashClosingButton')?.addEventListener('click', openCashClosingReopenSheet);
+    document.getElementById('closeCashClosingReopen')?.addEventListener('click', closeCashClosingReopenSheet);
+    document.getElementById('cancelCashClosingReopen')?.addEventListener('click', closeCashClosingReopenSheet);
+    document.getElementById('cashClosingReopenBackdrop')?.addEventListener('click', closeCashClosingReopenSheet);
+    document.getElementById('cashClosingReopenForm')?.addEventListener('submit', handleCashClosingReopenSubmit);
     document.querySelectorAll('[data-open-activity-launcher]').forEach((button) => {
       button.addEventListener('click', openActivityLauncher);
     });
@@ -333,6 +477,9 @@
         });
       });
     document.getElementById('resetReportsFilters')?.addEventListener('click', resetReportsFilters);
+    document.querySelectorAll('[data-back-reports]').forEach((button) => {
+      button.addEventListener('click', () => navigate('lainnya'));
+    });
     document.getElementById('exportReportsCsv')?.addEventListener('click', exportCurrentReportCsv);
     document.getElementById('printReports')?.addEventListener('click', () => window.print());
 
@@ -400,6 +547,95 @@
     document.getElementById('changeOwnPasswordButton')?.addEventListener('click', changeOwnPassword);
     document.getElementById('createBackupNowButton')?.addEventListener('click', createBackupNow);
     document.getElementById('installBackupScheduleButton')?.addEventListener('click', installBackupSchedule);
+    document.querySelectorAll('[data-back-backup-manager]').forEach((button) => {
+      button.addEventListener('click', () => navigate('lainnya'));
+    });
+    document.getElementById('reloadBackupManagerButton')?.addEventListener('click', () => loadBackupManager(true));
+    document.getElementById('createBackupManagerButton')?.addEventListener('click', createBackupFromManager);
+    document.getElementById('cleanupBackupManagerButton')?.addEventListener('click', cleanupBackupsFromManager);
+    document.getElementById('closeBackupRestoreSheet')?.addEventListener('click', closeBackupRestoreSheet);
+    document.getElementById('cancelBackupRestoreButton')?.addEventListener('click', closeBackupRestoreSheet);
+    document.getElementById('backupRestoreBackdrop')?.addEventListener('click', closeBackupRestoreSheet);
+    document.getElementById('backupRestoreForm')?.addEventListener('submit', handleBackupRestoreSubmit);
+    document.querySelectorAll('[data-back-operational-alerts]').forEach((button) => {
+      button.addEventListener('click', () => navigate('lainnya'));
+    });
+    document.getElementById('reloadOperationalAlertsButton')?.addEventListener('click', () => loadOperationalAlerts(true));
+    document.getElementById('syncOperationalAlertsButton')?.addEventListener('click', syncOperationalAlertsCalendar);
+    document.getElementById('dashboardAlertCenterButton')?.addEventListener('click', openOperationalAlertsPage);
+    document.getElementById('operationalAlertSearch')?.addEventListener('input', (event) => {
+      state.operationalAlertSearch = event.currentTarget.value;
+      renderOperationalAlerts();
+    });
+    document.getElementById('operationalAlertCategory')?.addEventListener('change', (event) => {
+      state.operationalAlertCategory = event.currentTarget.value;
+      renderOperationalAlerts();
+    });
+    document.getElementById('operationalAlertSeverity')?.addEventListener('change', (event) => {
+      state.operationalAlertSeverity = event.currentTarget.value;
+      renderOperationalAlerts();
+    });
+    document.getElementById('operationalAlertReadState')?.addEventListener('change', (event) => {
+      state.operationalAlertReadState = event.currentTarget.value;
+      renderOperationalAlerts();
+    });
+    document.getElementById('resetOperationalAlertFilters')?.addEventListener('click', resetOperationalAlertFilters);
+    document.querySelectorAll('[data-back-lot-stock]').forEach((button) => {
+      button.addEventListener('click', () => navigate('lainnya'));
+    });
+    document.getElementById('reloadLotStockButton')?.addEventListener('click', () => loadLotStock(true));
+    document.getElementById('lotStockSearch')?.addEventListener('input', (event) => {
+      state.lotStockSearch = event.currentTarget.value;
+      renderLotStockPage();
+    });
+    document.getElementById('lotStockVariant')?.addEventListener('change', (event) => {
+      state.lotStockVariant = event.currentTarget.value;
+      renderLotStockPage();
+    });
+    document.getElementById('lotStockStatus')?.addEventListener('change', (event) => {
+      state.lotStockStatus = event.currentTarget.value;
+      renderLotStockPage();
+    });
+    document.getElementById('resetLotStockFilters')?.addEventListener('click', resetLotStockFilters);
+    document.querySelectorAll('[data-back-fridge-manager]').forEach((button) => {
+      button.addEventListener('click', () => navigate('lainnya'));
+    });
+    document.getElementById('reloadFridgeManagerButton')?.addEventListener('click', () => loadFridgeManager(true));
+    document.getElementById('addFridgeButton')?.addEventListener('click', () => openFridgeEditor());
+    document.getElementById('closeFridgeEditorSheet')?.addEventListener('click', closeFridgeEditor);
+    document.getElementById('cancelFridgeEditorButton')?.addEventListener('click', closeFridgeEditor);
+    document.getElementById('fridgeEditorBackdrop')?.addEventListener('click', closeFridgeEditor);
+    document.getElementById('fridgeEditorForm')?.addEventListener('submit', handleFridgeEditorSubmit);
+    document.getElementById('closeFridgeContentsSheet')?.addEventListener('click', closeFridgeContents);
+    document.getElementById('cancelFridgeContentsButton')?.addEventListener('click', closeFridgeContents);
+    document.getElementById('fridgeContentsBackdrop')?.addEventListener('click', closeFridgeContents);
+    document.getElementById('fridgeContentsForm')?.addEventListener('submit', handleFridgeContentsSubmit);
+    document.getElementById('fridgeContentsSearch')?.addEventListener('input', (event) => {
+      state.fridgeContentsSearch = event.currentTarget.value;
+      renderFridgeContentsLots();
+    });
+    document.querySelectorAll('[data-back-device-sessions]').forEach((button) => {
+      button.addEventListener('click', () => navigate('lainnya'));
+    });
+    document.getElementById('reloadDeviceSessionsButton')?.addEventListener('click', () => loadDeviceSessions(true));
+    document.getElementById('revokeAllOtherSessionsButton')?.addEventListener('click', () => openDeviceSessionRevokeSheet({mode: 'all-other'}));
+    document.getElementById('deviceSessionSearch')?.addEventListener('input', (event) => {
+      state.deviceSessionSearch = event.currentTarget.value;
+      renderDeviceSessions();
+    });
+    document.getElementById('deviceSessionUserFilter')?.addEventListener('change', (event) => {
+      state.deviceSessionUserFilter = event.currentTarget.value;
+      renderDeviceSessions();
+    });
+    document.getElementById('deviceSessionStatusFilter')?.addEventListener('change', (event) => {
+      state.deviceSessionStatusFilter = event.currentTarget.value;
+      renderDeviceSessions();
+    });
+    document.getElementById('resetDeviceSessionFilters')?.addEventListener('click', resetDeviceSessionFilters);
+    document.getElementById('closeDeviceSessionRevokeSheet')?.addEventListener('click', closeDeviceSessionRevokeSheet);
+    document.getElementById('cancelDeviceSessionRevokeButton')?.addEventListener('click', closeDeviceSessionRevokeSheet);
+    document.getElementById('deviceSessionRevokeBackdrop')?.addEventListener('click', closeDeviceSessionRevokeSheet);
+    document.getElementById('deviceSessionRevokeForm')?.addEventListener('submit', handleDeviceSessionRevokeSubmit);
     document.getElementById('reloadSystemActivityButton')?.addEventListener('click', () => loadAppSettings(true));
     document.getElementById('applyAppUpdateButton')?.addEventListener('click', applyAppUpdate);
     document.getElementById('dismissAppUpdateButton')?.addEventListener('click', dismissAppUpdate);
@@ -529,6 +765,10 @@
       openTransactionHistoryPage();
       return;
     }
+    if (card.hasAttribute('data-open-cash-closing')) {
+      openCashClosingPage();
+      return;
+    }
     if (card.hasAttribute('data-open-reports')) {
       openReportsPage();
       return;
@@ -545,6 +785,26 @@
       openAppSettingsPage();
       return;
     }
+    if (card.hasAttribute('data-open-backup-manager')) {
+      openBackupManagerPage();
+      return;
+    }
+    if (card.hasAttribute('data-open-operational-alerts')) {
+      openOperationalAlertsPage();
+      return;
+    }
+    if (card.hasAttribute('data-open-lot-stock')) {
+      openLotStockPage();
+      return;
+    }
+    if (card.hasAttribute('data-open-fridge-manager')) {
+      openFridgeManagerPage();
+      return;
+    }
+    if (card.hasAttribute('data-open-device-sessions')) {
+      openDeviceSessionsPage();
+      return;
+    }
     if (card.hasAttribute('data-open-app-users')) {
       openAppUsersPage();
       return;
@@ -557,11 +817,158 @@
       openProductionLabelPage();
       return;
     }
+    if (card.hasAttribute('data-open-bottling-label')) {
+      openBottlingLabelPage();
+      return;
+    }
 
     const action = card.dataset.demoAction;
     if (action) {
       showToast(`${action} akan dibuat pada tahap modul berikutnya.`, 'info');
     }
+  }
+
+  function getOrCreateDeviceIdentity() {
+    try {
+      const stored = localStorage.getItem(config.DEVICE_KEY);
+      if (stored && /^[A-Za-z0-9._:-]{12,120}$/.test(stored)) return stored;
+    } catch {}
+
+    const random = window.crypto?.randomUUID
+      ? window.crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+    const id = `device:${random}`;
+    try { localStorage.setItem(config.DEVICE_KEY, id); } catch {}
+    return id;
+  }
+
+  function detectClientBrowser() {
+    const ua = navigator.userAgent || '';
+    if (/Edg\//i.test(ua)) return 'Microsoft Edge';
+    if (/OPR\//i.test(ua)) return 'Opera';
+    if (/Firefox\//i.test(ua)) return 'Firefox';
+    if (/CriOS\//i.test(ua)) return 'Chrome iOS';
+    if (/Chrome\//i.test(ua)) return 'Google Chrome';
+    if (/Safari\//i.test(ua) && !/Chrome\//i.test(ua)) return 'Safari';
+    return navigator.userAgentData?.brands?.[0]?.brand || 'Browser tidak dikenal';
+  }
+
+  function detectClientOs() {
+    const ua = navigator.userAgent || '';
+    const platform = navigator.userAgentData?.platform || navigator.platform || '';
+    if (/iPhone|iPad|iPod/i.test(ua)) return 'iOS / iPadOS';
+    if (/Android/i.test(ua)) return 'Android';
+    if (/Windows/i.test(platform) || /Windows NT/i.test(ua)) return 'Windows';
+    if (/Mac/i.test(platform) || /Mac OS X/i.test(ua)) return 'macOS';
+    if (/Linux/i.test(platform) || /Linux/i.test(ua)) return 'Linux';
+    return platform || 'Sistem tidak dikenal';
+  }
+
+  function detectClientDeviceType() {
+    const standalone = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
+    if (standalone) return 'PWA';
+    if (/iPad|Tablet/i.test(navigator.userAgent || '')) return 'TABLET';
+    if (/Mobi|Android|iPhone|iPod/i.test(navigator.userAgent || '')) return 'MOBILE';
+    return 'DESKTOP';
+  }
+
+  function getLoginDeviceMetadata() {
+    const browser = detectClientBrowser();
+    const os = detectClientOs();
+    const type = detectClientDeviceType();
+    const standalone = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
+    return {
+      id: getOrCreateDeviceIdentity(),
+      name: `${type === 'PWA' ? 'Aplikasi MERAMU' : type === 'MOBILE' ? 'HP' : type === 'TABLET' ? 'Tablet' : 'Komputer'} · ${browser}`,
+      type,
+      browser,
+      os,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
+      language: navigator.language || '',
+      screen: `${window.screen?.width || 0}×${window.screen?.height || 0}`,
+      standalone,
+      userAgent: navigator.userAgent || ''
+    };
+  }
+
+  function persistSessionLocally() {
+    if (!state.session) return;
+    try { localStorage.setItem(config.SESSION_KEY, JSON.stringify(state.session)); } catch {}
+  }
+
+  function recordLocalSessionActivity(force = false) {
+    if (!state.session) return;
+    const now = Date.now();
+    if (!force && now - state.lastSessionActivityPersistAt < 60000) return;
+    state.lastSessionActivityPersistAt = now;
+    state.session.lastActivityAt = now;
+    persistSessionLocally();
+  }
+
+  function expireLocalSession(message) {
+    if (!state.session) return;
+    localStorage.removeItem(config.SESSION_KEY);
+    state.session = null;
+    closeAllSheets(true);
+    openLogin();
+    showToast(message || 'Sesi berakhir. Silakan masuk kembali.', 'warning');
+  }
+
+  async function sendSessionHeartbeat() {
+    if (!state.session || state.sessionHeartbeatRunning) return;
+    state.sessionHeartbeatRunning = true;
+    state.lastSessionHeartbeatAt = Date.now();
+    try {
+      const result = await window.MeramuAPI.request(
+        'session-status',
+        {},
+        {token: state.session.token, method: 'GET', timeout: 20000, retries: 0}
+      );
+      if (result.user) {
+        state.session.user = {...state.session.user, ...result.user};
+        persistSessionLocally();
+      }
+    } catch (error) {
+      if (!isSessionError(error)) console.warn('Heartbeat sesi gagal:', error);
+    } finally {
+      state.sessionHeartbeatRunning = false;
+    }
+  }
+
+  function checkLocalSessionSecurity() {
+    if (!state.session) return;
+    const now = Date.now();
+    const expiresAt = Date.parse(state.session.user?.expiresAt || '');
+    const idleSeconds = Number(state.session.user?.idleSeconds || state.session.policy?.idleSeconds || 7200);
+    const lastActivity = Number(state.session.lastActivityAt || state.session.savedAt || now);
+
+    if (Number.isFinite(expiresAt) && expiresAt > 0 && now >= expiresAt) {
+      expireLocalSession('Masa sesi 12 jam telah berakhir. Silakan masuk kembali.');
+      return;
+    }
+    if (now - lastActivity >= idleSeconds * 1000) {
+      expireLocalSession('Sesi berakhir karena tidak aktif selama 2 jam.');
+      return;
+    }
+
+    const recentlyActive = now - lastActivity <= 5 * 60000;
+    if (
+      recentlyActive &&
+      document.visibilityState === 'visible' &&
+      now - state.lastSessionHeartbeatAt >= 5 * 60000
+    ) {
+      sendSessionHeartbeat();
+    }
+  }
+
+  function initializeLocalSessionSecurity() {
+    ['pointerdown', 'keydown', 'touchstart'].forEach((eventName) => {
+      window.addEventListener(eventName, () => recordLocalSessionActivity(), {passive: true});
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') checkLocalSessionSecurity();
+    });
+    state.sessionActivityTimer = window.setInterval(checkLocalSessionSecurity, 60000);
   }
 
   async function handleLogin(event) {
@@ -583,12 +990,28 @@
     setButtonLoading(submitButton, true, 'Menghubungkan...');
 
     try {
-      const result = await window.MeramuAPI.request('login', { username, password }, { token: '' });
-      state.session = { token: result.token, user: result.user, savedAt: Date.now() };
+      const device = getLoginDeviceMetadata();
+      const result = await window.MeramuAPI.request(
+        'login',
+        { username, password, device },
+        { token: '' }
+      );
+      state.session = {
+        token: result.token,
+        user: result.user,
+        policy: result.policy || {},
+        savedAt: Date.now(),
+        lastActivityAt: Date.now()
+      };
       localStorage.setItem(config.SESSION_KEY, JSON.stringify(state.session));
       form.reset();
       openApp();
-      showToast('Login berhasil. Data MERAMU sedang dimuat.', 'success');
+      showToast(
+        result.newDevice
+          ? 'Login berhasil dari perangkat baru. Aktivitas ini dicatat untuk keamanan.'
+          : result.message || 'Login berhasil. Data MERAMU sedang dimuat.',
+        result.newDevice ? 'warning' : 'success'
+      );
     } catch (error) {
       errorElement.textContent = error.message || 'Login gagal. Silakan coba lagi.';
       shakeElement(form);
@@ -634,6 +1057,8 @@
     restartClass(appView, 'motion-app-enter');
 
     applyUser();
+    recordLocalSessionActivity(true);
+    checkLocalSessionSecurity();
 
     const savedStockGroup = String(
       localStorage.getItem(config.STOCK_DETAIL_GROUP_KEY) || 'BAHAN'
@@ -645,6 +1070,9 @@
     const lastPage = localStorage.getItem(config.LAST_PAGE_KEY);
     navigate(pageNames[lastPage] ? lastPage : 'dashboard', false);
     refreshAppData({ showToastOnError: true });
+    if (isCurrentAppAdmin()) {
+      window.setTimeout(() => loadDeviceSessions(), 900);
+    }
   }
 
   async function logout() {
@@ -682,6 +1110,52 @@
     state.authExpiryHandled = false;
     state.selectedLabelBatchId = '';
     state.productionLabelStyle = null;
+    state.selectedBottlingLabelId = '';
+    state.bottlingLabelStyle = null;
+    state.bottlingLabelHistory = [];
+    state.bottlingLabelHistoryLoaded = false;
+    state.bottlingLabelHistoryLoading = false;
+    state.bottlingLabelPrinting = false;
+    state.backupManagerData = null;
+    state.backupManagerLoading = false;
+    state.backupManagerActionSubmitting = false;
+    state.selectedBackupFileId = '';
+    state.selectedBackupInspection = null;
+    state.restoreBackupSubmitting = false;
+    state.operationalAlertsData = null;
+    state.operationalAlertsLoaded = false;
+    state.operationalAlertsLoading = false;
+    state.operationalAlertActionSubmitting = false;
+    state.operationalAlertSearch = '';
+    state.operationalAlertCategory = '';
+    state.operationalAlertSeverity = '';
+    state.operationalAlertReadState = '';
+    state.deviceSessionsData = null;
+    state.deviceSessionsLoaded = false;
+    state.deviceSessionsLoading = false;
+    state.deviceSessionActionSubmitting = false;
+    state.deviceSessionSearch = '';
+    state.deviceSessionUserFilter = '';
+    state.deviceSessionStatusFilter = 'ACTIVE';
+    state.lotStockData = null;
+    state.lotStockLoaded = false;
+    state.lotStockLoading = false;
+    state.lotStockSearch = '';
+    state.lotStockVariant = '';
+    state.lotStockStatus = 'AKTIF';
+    state.fridgeManagerData = null;
+    state.fridgeManagerLoaded = false;
+    state.fridgeManagerLoading = false;
+    state.fridgeManagerSubmitting = false;
+    state.selectedFridgeId = '';
+    state.fridgeContentsSearch = '';
+    state.fridgeSelectedLotIds = [];
+    state.cashClosingData = null;
+    state.cashClosingLoading = false;
+    state.cashClosingSubmitting = false;
+    state.cashClosingActionSubmitting = false;
+    state.selectedCashClosingReference = '';
+    state.cashClosingHistoryStatus = '';
     openLogin();
     showToast('Anda telah keluar dari aplikasi.', 'info');
   }
@@ -733,7 +1207,16 @@
       state.initialData = initial;
       state.batches = batches || [];
       state.bottlings = bottlings || [];
+      state.bottlingLabelHistory = Array.isArray(initial.bottlingLabelHistory)
+        ? initial.bottlingLabelHistory
+        : [];
+      state.bottlingLabelHistoryLoaded = Array.isArray(initial.bottlingLabelHistory);
+      state.operationalAlertsData = initial.operationalAlerts || null;
+      state.operationalAlertsLoaded = Boolean(initial.operationalAlerts);
+      state.lotStockData = initial.lotStock || null;
+      state.lotStockLoaded = Boolean(initial.lotStock);
       state.transactions = transactions || [];
+      state.cashClosingData = initial.cashClosing || state.cashClosingData;
       state.reportLoaded = false;
       buildDataMaps();
       renderDashboard();
@@ -746,12 +1229,16 @@
       renderProductionHistory();
       renderTransactionActivity();
       renderTransactionHistory();
+      renderCashClosingPage();
       if (state.page === 'laporan') loadReportData(true);
       renderStockAttention();
       renderStockDetailPage();
       renderMasterItemsPage();
       renderMasterRecipesPage();
       renderProductionLabelPage();
+      renderBottlingLabelPage();
+      renderOperationalAlerts();
+      renderLotStockPage();
       applyBusinessIdentity(state.initialData?.settings || {});
       if (state.page === 'pengaturan') loadAppSettings(true);
     } catch (error) {
@@ -1192,6 +1679,11 @@
   function handleDashboardPriority(priority) {
     if (!priority) return;
 
+    if (priority.route) {
+      handleOperationalAlertRoute(priority);
+      return;
+    }
+
     if (priority.action === 'STOCK') {
       openStockDetailPage(priority.group || 'BAHAN');
       return;
@@ -1211,8 +1703,18 @@
     const container = document.getElementById('dashboardAttentionList');
     if (!container) return;
 
-    const priorities = Array.isArray(data.priorities) ? data.priorities.slice(0, 4) : [];
-    setText('#dashboardAttentionCount', `${priorities.length} prioritas`);
+    const operational = Array.isArray(state.operationalAlertsData?.alerts)
+      ? state.operationalAlertsData.alerts
+      : null;
+    const priorities = operational
+      ? operational.slice(0, 4)
+      : Array.isArray(data.priorities)
+        ? data.priorities.slice(0, 4)
+        : [];
+    const unread = state.operationalAlertsData?.summary?.unread ?? priorities.length;
+
+    setText('#dashboardAttentionCount', `${unread} belum dibaca`);
+    setText('#operationalAlertCardCount', String(unread));
     container.replaceChildren();
 
     if (!priorities.length) {
@@ -1222,7 +1724,7 @@
         <span class="list-icon">✓</span>
         <span class="list-copy">
           <strong>Operasional dalam kondisi aman</strong>
-          <span>Belum ada stok atau batch yang membutuhkan tindakan.</span>
+          <span>Belum ada Batch, stok, EXP, backup, atau kas yang membutuhkan tindakan.</span>
         </span>
       `;
       container.append(row);
@@ -1237,7 +1739,7 @@
 
       const icon = document.createElement('span');
       icon.className = `list-icon ${priority.severity || 'warning'}`;
-      icon.textContent = priority.kind === 'BATCH' ? 'B' : '!';
+      icon.textContent = operationalAlertIcon(priority);
 
       const copy = document.createElement('span');
       copy.className = 'list-copy';
@@ -1855,7 +2357,7 @@
   }
 
   function closeAllSheets(force = false) {
-    if (!force && (state.batchSubmitting || state.fermentationSubmitting || state.finishSubmitting || state.bottlingSubmitting || state.openingStockSubmitting || state.purchaseSubmitting || state.saleSubmitting || state.expenseSubmitting || state.stockUsageSubmitting || state.stockOpnameSubmitting || state.masterItemSubmitting || state.appSettingsSaving || state.appUserSubmitting || state.masterRecipeSubmitting)) return;
+    if (!force && (state.batchSubmitting || state.fermentationSubmitting || state.finishSubmitting || state.bottlingSubmitting || state.openingStockSubmitting || state.purchaseSubmitting || state.saleSubmitting || state.expenseSubmitting || state.stockUsageSubmitting || state.stockOpnameSubmitting || state.masterItemSubmitting || state.appSettingsSaving || state.appUserSubmitting || state.masterRecipeSubmitting || state.restoreBackupSubmitting || state.fridgeManagerSubmitting)) return;
     closeSheet('batchFormSheet', 'batchSheetBackdrop');
     closeSheet('fermentationSheet', 'fermentationSheetBackdrop');
     closeSheet('finishSheet', 'finishSheetBackdrop');
@@ -1869,6 +2371,12 @@
     closeSheet('stockOpnameSheet', 'stockOpnameSheetBackdrop');
     closeSheet('transactionHistoryDetailSheet', 'transactionHistoryDetailBackdrop');
     closeSheet('transactionVoidSheet', 'transactionVoidBackdrop');
+    closeSheet('cashClosingDetailSheet', 'cashClosingDetailBackdrop');
+    closeSheet('cashClosingReopenSheet', 'cashClosingReopenBackdrop');
+    closeSheet('backupRestoreSheet', 'backupRestoreBackdrop');
+    closeSheet('fridgeEditorSheet', 'fridgeEditorBackdrop');
+    closeSheet('fridgeContentsSheet', 'fridgeContentsBackdrop');
+    closeSheet('deviceSessionRevokeSheet', 'deviceSessionRevokeBackdrop');
     closeSheet('stockItemDetailSheet', 'stockItemDetailBackdrop');
     closeSheet('masterItemSheet', 'masterItemSheetBackdrop');
     closeSheet('appUserSheet', 'appUserSheetBackdrop');
@@ -3883,6 +4391,7 @@
   }
 
   function openSaleSheet() {
+    if (!state.lotStockLoaded) loadLotStock();
     if (!getSaleProducts().length) {
       showToast('Belum ada produk jual aktif pada Master Item.', 'warning');
       return;
@@ -3981,10 +4490,19 @@
       <div class="sale-entry-status" data-status="neutral">
         Stok akan diperiksa otomatis.
       </div>
+
+      <div class="sale-fefo-preview">
+        <span class="sale-fefo-kicker">FEFO otomatis</span>
+        <div class="sale-fefo-allocation-list">Pilih produk dan jumlah untuk melihat Bottling ID.</div>
+      </div>
     `;
 
     const select = row.querySelector('.sale-product-select');
     const qtyInput = row.querySelector('.sale-qty-input');
+
+    row.querySelectorAll('.sale-line-profit').forEach((element) => {
+      element.hidden = !isCurrentAppAdmin();
+    });
     const priceInput = row.querySelector('.sale-price-input');
     const removeButton = row.querySelector('.sale-remove-button');
 
@@ -4056,7 +4574,13 @@
 
     if (unitText) unitText.textContent = item.unit || 'botol';
     if (stockText) {
-      stockText.textContent = `Stok ${formatQuantity(stock?.stock)} ${item.unit || ''} · HPP ${formatCurrency(item.averageCost)} · Harga master ${formatCurrency(item.sellPrice)}`;
+      const sellable = stock?.sellableStock ?? stock?.stock;
+      const expired = toNumber(stock?.expiredStock);
+      stockText.textContent =
+        `Siap jual ${formatQuantity(sellable)} ${item.unit || ''} · ` +
+        `${formatQuantity(stock?.activeLotCount || 0)} lot` +
+        (expired > 0 ? ` · ${formatQuantity(expired)} kedaluwarsa diblokir` : '') +
+        ` · Harga ${formatCurrency(item.sellPrice)}`;
     }
 
     if (allowAutoPrice && priceInput && !priceInput.dataset.manual) {
@@ -4072,17 +4596,46 @@
     const unitPrice = Math.max(0, getMoneyInputValue(row.querySelector('.sale-price-input')));
     const item = state.itemMap.get(code);
     const stock = state.stockMap.get(code) || item;
-    const available = toNumber(stock?.stock);
+    const available = toNumber(stock?.sellableStock ?? stock?.stock);
+    const preview = item
+      ? previewFefoAllocations(code, qty)
+      : {allocations: [], allocated: 0, shortage: qty, hpp: 0};
     const subtotal = qty * unitPrice;
-    const hpp = qty * toNumber(item?.averageCost);
+    const fallbackHpp = qty * toNumber(item?.averageCost);
+    const hpp = preview.allocations.length ? preview.hpp : fallbackHpp;
     const profit = subtotal - hpp;
 
     const total = row.querySelector('.sale-line-total');
     const profitElement = row.querySelector('.sale-line-profit');
     const status = row.querySelector('.sale-entry-status');
+    const allocationList = row.querySelector('.sale-fefo-allocation-list');
+
+    row.dataset.fefoHpp = String(hpp);
 
     if (total) total.textContent = formatCurrency(subtotal);
     if (profitElement) profitElement.textContent = `Laba ${formatCurrency(profit)}`;
+
+    if (allocationList) {
+      allocationList.replaceChildren();
+
+      if (!item || qty <= 0) {
+        allocationList.textContent = 'Pilih produk dan jumlah untuk melihat Bottling ID.';
+      } else if (!state.lotStockLoaded) {
+        allocationList.textContent = 'Memuat stok per Bottling ID...';
+      } else if (!preview.allocations.length) {
+        allocationList.textContent = 'Tidak ada lot aman yang dapat dialokasikan.';
+      } else {
+        preview.allocations.forEach((allocation, index) => {
+          const chip = document.createElement('span');
+          chip.className = 'sale-fefo-allocation-chip';
+          chip.textContent =
+            `${index + 1}. ${allocation.lotId} · ${formatQuantity(allocation.qty)} ` +
+            `${item.unit || 'botol'} · ` +
+            `${allocation.expiry ? `EXP ${formatNumericDate(allocation.expiry)}` : 'EXP belum tercatat'}`;
+          allocationList.append(chip);
+        });
+      }
+    }
 
     if (!status) return;
 
@@ -4091,13 +4644,18 @@
       status.textContent = 'Stok akan diperiksa otomatis.';
     } else if (qty <= 0) {
       status.dataset.status = 'neutral';
-      status.textContent = `Tersedia ${formatQuantity(available)} ${item.unit || ''}.`;
-    } else if (qty > available) {
+      status.textContent =
+        `Siap jual ${formatQuantity(available)} ${item.unit || ''} melalui FEFO.`;
+    } else if (qty > available || preview.shortage > 0) {
       status.dataset.status = 'danger';
-      status.textContent = `Stok kurang ${formatQuantity(qty - available)} ${item.unit || ''}.`;
+      status.textContent =
+        `Stok lot aman kurang ${formatQuantity(Math.max(qty - available, preview.shortage))} ` +
+        `${item.unit || ''}. Produk kedaluwarsa tidak dapat dijual.`;
     } else {
       status.dataset.status = 'success';
-      status.textContent = `Stok cukup · sisa setelah penjualan ${formatQuantity(available - qty)} ${item.unit || ''}.`;
+      status.textContent =
+        `FEFO siap · ${preview.allocations.length} lot · sisa aman ` +
+        `${formatQuantity(available - qty)} ${item.unit || ''}.`;
     }
   }
 
@@ -4126,10 +4684,15 @@
 
     items.forEach((line) => {
       const stock = state.stockMap.get(line.code);
-      const available = toNumber(stock?.stock);
-      if (line.qty > available) {
+      const available = toNumber(stock?.sellableStock ?? stock?.stock);
+      const preview = previewFefoAllocations(line.code, line.qty);
+      if (line.qty > available || preview.shortage > 0) {
         const item = state.itemMap.get(line.code);
-        throw new Error(`Stok ${item?.name || line.code} hanya ${formatQuantity(available)} ${item?.unit || ''}.`);
+        throw new Error(
+          `Stok lot aman ${item?.name || line.code} hanya ` +
+          `${formatQuantity(Math.min(available, preview.allocated))} ${item?.unit || ''}. ` +
+          'Produk kedaluwarsa diblokir dari penjualan.'
+        );
       }
     });
 
@@ -4141,7 +4704,12 @@
     const subtotal = items.reduce((sum, line) => sum + (line.qty * line.unitPrice), 0);
     const hpp = items.reduce((sum, line) => {
       const item = state.itemMap.get(line.code);
-      return sum + (line.qty * toNumber(item?.averageCost));
+      const preview = previewFefoAllocations(line.code, line.qty);
+      return sum + (
+        preview.allocations.length
+          ? preview.hpp
+          : line.qty * toNumber(item?.averageCost)
+      );
     }, 0);
     const discount = Math.max(0, getMoneyInputValue(document.getElementById('saleDiscount')));
     const shipping = Math.max(0, getMoneyInputValue(document.getElementById('saleShipping')));
@@ -4191,7 +4759,12 @@
       });
 
       closeSaleSheet(true);
-      showToast(`${result.invoice} tersimpan · total ${formatCurrency(result.total)} · laba ${formatCurrency(result.labaKotor)}.`, 'success');
+      const saleSuccessMessage = isCurrentAppAdmin()
+        ? `${result.invoice} tersimpan · FEFO ${formatQuantity(result.lotCount || 0)} alokasi lot · ` +
+          `total ${formatCurrency(result.total)} · laba ${formatCurrency(result.labaKotor)}.`
+        : `${result.invoice} tersimpan · FEFO ${formatQuantity(result.lotCount || 0)} alokasi lot · ` +
+          `total ${formatCurrency(result.total)}.`;
+      showToast(saleSuccessMessage, 'success');
       await refreshAppData({showToastOnError:false});
       navigate('transaksi');
     } catch (err) {
@@ -4580,12 +5153,12 @@
     const role = currentApplicationRole();
     if (role === 'ADMIN') return Object.keys(pageNames);
     if (role === 'PRODUKSI') {
-      return ['dashboard', 'produksi', 'riwayat-produksi', 'stok', 'stok-detail', 'label-print', 'lainnya', 'pengaturan'];
+      return ['dashboard', 'produksi', 'riwayat-produksi', 'stok', 'stok-detail', 'stok-lot', 'qr-kulkas', 'label-print', 'label-bottling', 'notifikasi', 'lainnya', 'pengaturan'];
     }
     if (role === 'KASIR') {
-      return ['dashboard', 'transaksi', 'riwayat-transaksi', 'stok', 'stok-detail', 'lainnya', 'pengaturan'];
+      return ['dashboard', 'transaksi', 'riwayat-transaksi', 'tutup-kas', 'stok', 'stok-detail', 'stok-lot', 'qr-kulkas', 'notifikasi', 'lainnya', 'pengaturan'];
     }
-    return ['dashboard', 'lainnya', 'pengaturan'];
+    return ['dashboard', 'stok-lot', 'qr-kulkas', 'notifikasi', 'lainnya', 'pengaturan'];
   }
 
   function canNavigateToPage(page) {
@@ -4600,10 +5173,19 @@
       button.hidden = !allowedPages.has(button.dataset.pageTarget);
     });
 
-    document.querySelectorAll('[data-open-master-items], [data-open-master-recipes], [data-open-app-users]').forEach((element) => {
+    document.querySelectorAll('[data-open-master-items], [data-open-master-recipes], [data-open-app-users], [data-open-backup-manager], [data-open-device-sessions]').forEach((element) => {
       element.hidden = role !== 'ADMIN';
     });
     document.querySelectorAll('[data-open-reports]').forEach((element) => {
+      element.hidden = role !== 'ADMIN';
+    });
+    document.querySelectorAll('[data-alert-admin]').forEach((element) => {
+      element.hidden = role !== 'ADMIN';
+    });
+    document.querySelectorAll('[data-fridge-admin]').forEach((element) => {
+      element.hidden = role !== 'ADMIN';
+    });
+    document.querySelectorAll('[data-sale-financial-sensitive], .sale-line-profit').forEach((element) => {
       element.hidden = role !== 'ADMIN';
     });
     document.querySelectorAll('[data-open-activity-launcher]').forEach((element) => {
@@ -4624,7 +5206,11 @@
         return;
       }
 
-      let allowed = card.hasAttribute('data-open-app-settings');
+      let allowed =
+        card.hasAttribute('data-open-app-settings') ||
+        card.hasAttribute('data-open-operational-alerts') ||
+        card.hasAttribute('data-open-lot-stock') ||
+        card.hasAttribute('data-open-fridge-manager');
 
       if (role === 'PRODUKSI') {
         allowed = allowed ||
@@ -4634,6 +5220,7 @@
           card.hasAttribute('data-open-bottling') ||
           card.hasAttribute('data-open-production-history') ||
           card.hasAttribute('data-open-label-print') ||
+          card.hasAttribute('data-open-bottling-label') ||
           card.hasAttribute('data-open-stock-group');
       }
 
@@ -4641,6 +5228,7 @@
         allowed = allowed ||
           card.hasAttribute('data-open-sale') ||
           card.hasAttribute('data-open-transaction-history') ||
+          card.hasAttribute('data-open-cash-closing') ||
           (
             card.hasAttribute('data-open-stock-group') &&
             String(card.dataset.openStockGroup || '').toUpperCase() === 'PRODUK'
@@ -4663,6 +5251,2065 @@
       element.textContent = location;
     });
     document.title = `${resolvePageName(state.page)} · ${name}`;
+  }
+
+
+
+  function openFridgeManagerPage() {
+    navigate('qr-kulkas');
+  }
+
+  function fridgeManagerFridges() {
+    return Array.isArray(state.fridgeManagerData?.fridges)
+      ? state.fridgeManagerData.fridges
+      : [];
+  }
+
+  function findFridgeManagerRecord(fridgeId) {
+    return fridgeManagerFridges().find((fridge) => (
+      String(fridge.fridgeId) === String(fridgeId)
+    )) || null;
+  }
+
+  function fridgeStatusTone(status) {
+    const value = String(status || '').toUpperCase();
+    if (value === 'KEDALUWARSA' || value === 'KRITIS') return 'danger';
+    if (value === 'PERHATIAN') return 'warning';
+    if (value === 'AMAN') return 'success';
+    return 'neutral';
+  }
+
+  async function loadFridgeManager(force = false) {
+    if (!state.session || state.fridgeManagerLoading) return;
+
+    if (state.fridgeManagerLoaded && !force) {
+      renderFridgeManagerPage();
+      return;
+    }
+
+    state.fridgeManagerLoading = true;
+    renderFridgeManagerPage();
+
+    try {
+      const result = await window.MeramuAPI.request(
+        'fridge-manager',
+        {},
+        {token: state.session.token, method: 'GET', timeout: 60000}
+      );
+      state.fridgeManagerData = result.data || null;
+      state.fridgeManagerLoaded = true;
+    } catch (error) {
+      showToast(error.message || 'Data QR Kulkas gagal dimuat.', 'error');
+    } finally {
+      state.fridgeManagerLoading = false;
+      renderFridgeManagerPage();
+    }
+  }
+
+  function renderFridgeManagerPage() {
+    const container = document.getElementById('fridgeManagerList');
+    if (!container) return;
+
+    const data = state.fridgeManagerData || {};
+    const summary = data.summary || {};
+    const permissions = data.permissions || {};
+    const fridges = fridgeManagerFridges();
+
+    setText('#fridgeManagerTotalCount', formatQuantity(summary.totalFridges || 0));
+    setText('#fridgeManagerActiveCount', formatQuantity(summary.activeFridges || 0));
+    setText('#fridgeManagerDisplayedCount', formatQuantity(summary.displayedLots || 0));
+    setText('#fridgeManagerAvailableCount', formatQuantity(summary.availableLots || 0));
+    setText('#fridgeManagerIssueCount', formatQuantity(summary.issues || 0));
+    setText('#fridgeManagerCardCount', String(summary.activeFridges || 0));
+    setText('#fridgeManagerVisibleCount', `${fridges.length} kulkas`);
+    setText(
+      '#fridgeManagerListCaption',
+      state.fridgeManagerLoading
+        ? 'Memuat QR dan isi kulkas...'
+        : fridges.length
+          ? `${summary.activeFridges || 0} aktif · ${summary.displayedLots || 0} lot sedang dipajang`
+          : 'Belum ada kulkas yang terdaftar'
+    );
+
+    document.querySelectorAll('[data-fridge-admin]').forEach((element) => {
+      element.hidden = !permissions.canManageMaster;
+    });
+
+    container.replaceChildren();
+
+    if (state.fridgeManagerLoading && !state.fridgeManagerLoaded) {
+      const loading = document.createElement('div');
+      loading.className = 'empty-state';
+      loading.innerHTML = '<p>Memuat QR Kulkas Dinamis...</p>';
+      container.append(loading);
+      return;
+    }
+
+    if (!fridges.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.innerHTML = `
+        <div class="empty-state-icon">QR</div>
+        <h3>Belum ada kulkas</h3>
+        <p>Administrator dapat membuat Kulkas ID dan mencetak QR permanen pertama.</p>
+      `;
+      container.append(empty);
+      return;
+    }
+
+    fridges.forEach((fridge) => {
+      const card = document.createElement('article');
+      card.className = `fridge-manager-entry ${fridge.active ? 'is-active' : 'is-inactive'}`;
+
+      const qrColumn = document.createElement('div');
+      qrColumn.className = 'fridge-manager-entry-qr';
+
+      const qr = document.createElement('div');
+      qr.className = 'fridge-manager-qr-canvas';
+
+      const id = document.createElement('strong');
+      id.textContent = fridge.fridgeId || '-';
+      qrColumn.append(qr, id);
+
+      const main = document.createElement('div');
+      main.className = 'fridge-manager-entry-main';
+
+      const heading = document.createElement('div');
+      heading.className = 'fridge-manager-entry-heading';
+
+      const copy = document.createElement('div');
+      const title = document.createElement('h3');
+      title.textContent = fridge.name || 'Kulkas MERAMU';
+      const location = document.createElement('p');
+      location.textContent = fridge.location || '-';
+      copy.append(title, location);
+
+      const status = document.createElement('span');
+      status.className = `fridge-manager-status ${fridge.active ? 'active' : 'inactive'}`;
+      status.textContent = fridge.active ? 'AKTIF' : 'NONAKTIF';
+
+      heading.append(copy, status);
+
+      const products = document.createElement('div');
+      products.className = 'fridge-manager-products';
+
+      if (!fridge.contents?.length) {
+        const emptyProduct = document.createElement('span');
+        emptyProduct.className = 'fridge-manager-product-chip empty';
+        emptyProduct.textContent = 'Belum ada Bottling ID';
+        products.append(emptyProduct);
+      } else {
+        fridge.contents.forEach((content) => {
+          const chip = document.createElement('span');
+          chip.className =
+            `fridge-manager-product-chip tone-${fridgeStatusTone(content.status)}`;
+          chip.textContent =
+            `${content.variant || content.productName || '-'} · ` +
+            `${content.lotId || '-'} · ${content.statusLabel || '-'}`;
+          products.append(chip);
+        });
+      }
+
+      const note = document.createElement('p');
+      note.className = 'fridge-manager-entry-note';
+      note.textContent =
+        fridge.customerNote ||
+        'Customer dapat memindai QR untuk melihat detail produk terbaru.';
+
+      const metrics = document.createElement('div');
+      metrics.className = 'fridge-manager-entry-metrics';
+      [
+        ['Lot dipajang', formatQuantity(fridge.activeContents || 0)],
+        ['Produk tersedia', formatQuantity(fridge.availableContents || 0)],
+        ['Perlu perhatian', formatQuantity(fridge.problemContents || 0)],
+        ['Diperbarui', fridge.updatedAt ? formatDateTime(fridge.updatedAt) : '-']
+      ].forEach(([label, value]) => {
+        const metric = document.createElement('div');
+        const labelElement = document.createElement('span');
+        labelElement.textContent = label;
+        const valueElement = document.createElement('strong');
+        valueElement.textContent = value;
+        metric.append(labelElement, valueElement);
+        metrics.append(metric);
+      });
+
+      const actions = document.createElement('div');
+      actions.className = 'fridge-manager-entry-actions';
+
+      const openButton = document.createElement('button');
+      openButton.className = 'btn btn-secondary';
+      openButton.type = 'button';
+      openButton.textContent = 'Buka Halaman Customer';
+      openButton.disabled = !fridge.publicUrl || !fridge.active;
+      openButton.addEventListener('click', () => openFridgePublicPage(fridge));
+
+      const printButton = document.createElement('button');
+      printButton.className = 'btn btn-secondary';
+      printButton.type = 'button';
+      printButton.textContent = 'Cetak QR 10 × 15';
+      printButton.disabled = !fridge.publicUrl;
+      printButton.addEventListener('click', () => printFridgeQrCard(fridge));
+
+      actions.append(openButton, printButton);
+
+      if (permissions.canManageContents) {
+        const contentsButton = document.createElement('button');
+        contentsButton.className = 'btn btn-primary';
+        contentsButton.type = 'button';
+        contentsButton.textContent = 'Kelola Isi';
+        contentsButton.addEventListener('click', () => openFridgeContents(fridge.fridgeId));
+        actions.append(contentsButton);
+      }
+
+      if (permissions.canManageMaster) {
+        const editButton = document.createElement('button');
+        editButton.className = 'btn btn-secondary';
+        editButton.type = 'button';
+        editButton.textContent = 'Edit Kulkas';
+        editButton.addEventListener('click', () => openFridgeEditor(fridge.fridgeId));
+        actions.append(editButton);
+      }
+
+      main.append(heading, products, note, metrics, actions);
+      card.append(qrColumn, main);
+      container.append(card);
+
+      if (fridge.publicUrl) {
+        renderBottlingQr(qr, fridge.publicUrl, 156);
+      } else {
+        qr.textContent = 'QR belum tersedia';
+      }
+    });
+  }
+
+  function openFridgeEditor(fridgeId = '') {
+    const permissions = state.fridgeManagerData?.permissions || {};
+    if (!permissions.canManageMaster) {
+      showToast('Hanya Administrator yang dapat mengubah master kulkas.', 'warning');
+      return;
+    }
+
+    const fridge = fridgeId ? findFridgeManagerRecord(fridgeId) : null;
+    state.selectedFridgeId = fridge?.fridgeId || '';
+
+    setText('#fridgeEditorTitle', fridge ? 'Edit Kulkas' : 'Tambah Kulkas');
+    setFieldValue('fridgeEditorId', fridge?.fridgeId || '');
+    setFieldValue('fridgeEditorName', fridge?.name || '');
+    setFieldValue('fridgeEditorLocation', fridge?.location || '');
+    setFieldValue('fridgeEditorNote', fridge?.customerNote || '');
+    const active = document.getElementById('fridgeEditorActive');
+    if (active) active.checked = fridge ? fridge.active : true;
+    setText('#fridgeEditorError', '');
+
+    openSheet('fridgeEditorSheet', 'fridgeEditorBackdrop');
+    window.setTimeout(() => document.getElementById('fridgeEditorName')?.focus(), 180);
+  }
+
+  function closeFridgeEditor(force = false) {
+    if (state.fridgeManagerSubmitting && !force) return;
+    closeSheet('fridgeEditorSheet', 'fridgeEditorBackdrop');
+  }
+
+  async function handleFridgeEditorSubmit(event) {
+    event.preventDefault();
+    if (state.fridgeManagerSubmitting) return;
+
+    const errorElement = document.getElementById('fridgeEditorError');
+    const button = document.getElementById('submitFridgeEditorButton');
+    if (errorElement) errorElement.textContent = '';
+
+    const payload = {
+      fridgeId: document.getElementById('fridgeEditorId')?.value || '',
+      name: document.getElementById('fridgeEditorName')?.value || '',
+      location: document.getElementById('fridgeEditorLocation')?.value || '',
+      customerNote: document.getElementById('fridgeEditorNote')?.value || '',
+      active: Boolean(document.getElementById('fridgeEditorActive')?.checked)
+    };
+
+    try {
+      if (payload.name.trim().length < 3) {
+        throw new Error('Nama kulkas minimal 3 karakter.');
+      }
+      if (!payload.location.trim()) {
+        throw new Error('Lokasi kulkas wajib diisi.');
+      }
+
+      state.fridgeManagerSubmitting = true;
+      setButtonLoading(button, true, 'Menyimpan...');
+
+      const result = await window.MeramuAPI.request(
+        'saveFridge',
+        payload,
+        {token: state.session.token, timeout: 60000}
+      );
+
+      showToast(result.message || 'Data kulkas berhasil disimpan.', 'success');
+      closeFridgeEditor(true);
+      state.fridgeManagerLoaded = false;
+      await loadFridgeManager(true);
+    } catch (error) {
+      if (errorElement) {
+        errorElement.textContent = error.message || 'Data kulkas gagal disimpan.';
+      }
+      shakeElement(document.getElementById('fridgeEditorForm'));
+    } finally {
+      state.fridgeManagerSubmitting = false;
+      setButtonLoading(button, false, 'Simpan Kulkas');
+    }
+  }
+
+  function currentFridgeContentsLotIds(fridge) {
+    return Array.isArray(fridge?.contents)
+      ? fridge.contents.map((content) => String(content.lotId))
+      : [];
+  }
+
+  function openFridgeContents(fridgeId) {
+    const permissions = state.fridgeManagerData?.permissions || {};
+    if (!permissions.canManageContents) {
+      showToast('Akun ini tidak dapat mengganti isi kulkas.', 'warning');
+      return;
+    }
+
+    const fridge = findFridgeManagerRecord(fridgeId);
+    if (!fridge) {
+      showToast('Data kulkas tidak ditemukan.', 'error');
+      return;
+    }
+
+    state.selectedFridgeId = fridge.fridgeId;
+    state.fridgeContentsSearch = '';
+    state.fridgeSelectedLotIds = currentFridgeContentsLotIds(fridge);
+
+    setText('#fridgeContentsTitle', `Kelola Isi ${fridge.name}`);
+    setText('#fridgeContentsSubtitle', 'Pilih Bottling ID yang sedang dipajang.');
+    setText('#fridgeContentsName', fridge.name || '-');
+    setText('#fridgeContentsLocation', fridge.location || '-');
+    setFieldValue('fridgeContentsSearch', '');
+    setText('#fridgeContentsError', '');
+
+    renderFridgeContentsLots();
+    openSheet('fridgeContentsSheet', 'fridgeContentsBackdrop');
+  }
+
+  function closeFridgeContents(force = false) {
+    if (state.fridgeManagerSubmitting && !force) return;
+    closeSheet('fridgeContentsSheet', 'fridgeContentsBackdrop');
+  }
+
+  function fridgeContentsCandidateLots() {
+    const fridge = findFridgeManagerRecord(state.selectedFridgeId);
+    const currentIds = new Set(currentFridgeContentsLotIds(fridge));
+    const available = Array.isArray(state.fridgeManagerData?.availableLots)
+      ? state.fridgeManagerData.availableLots
+      : [];
+    const currentById = new Map(
+      (fridge?.contents || []).map((content) => [String(content.lotId), content])
+    );
+    const merged = new Map();
+
+    available.forEach((lot) => merged.set(String(lot.lotId), lot));
+    currentById.forEach((lot, id) => {
+      if (!merged.has(id)) merged.set(id, lot);
+    });
+
+    return Array.from(merged.values())
+      .map((lot) => Object.assign({}, lot, {
+        currentlySelected: currentIds.has(String(lot.lotId))
+      }))
+      .sort((a, b) => {
+        const variant = String(a.variant || '').localeCompare(String(b.variant || ''), 'id');
+        if (variant !== 0) return variant;
+        const expiryA = a.expiry ? new Date(a.expiry).getTime() : Number.MAX_SAFE_INTEGER;
+        const expiryB = b.expiry ? new Date(b.expiry).getTime() : Number.MAX_SAFE_INTEGER;
+        return expiryA - expiryB;
+      });
+  }
+
+  function renderFridgeContentsLots() {
+    const container = document.getElementById('fridgeContentsLotList');
+    if (!container) return;
+
+    const search = String(state.fridgeContentsSearch || '').trim().toLowerCase();
+    const rows = fridgeContentsCandidateLots().filter((lot) => {
+      if (!search) return true;
+      return [
+        lot.lotId,
+        lot.batchId,
+        lot.variant,
+        lot.productName,
+        lot.statusLabel
+      ].join(' ').toLowerCase().includes(search);
+    });
+
+    container.replaceChildren();
+
+    if (!rows.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.innerHTML = '<p>Tidak ada Bottling ID yang sesuai pencarian.</p>';
+      container.append(empty);
+      updateFridgeContentsSelectedCount();
+      return;
+    }
+
+    rows.forEach((lot) => {
+      const lotId = String(lot.lotId);
+      const label = document.createElement('label');
+      label.className =
+        `fridge-content-lot-option tone-${fridgeStatusTone(lot.status)}`;
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.dataset.fridgeLotId = lotId;
+      checkbox.checked = state.fridgeSelectedLotIds.includes(lotId);
+      checkbox.disabled =
+        !checkbox.checked &&
+        lot.selectable === false;
+      checkbox.addEventListener('change', () => {
+        const selected = new Set(state.fridgeSelectedLotIds);
+        if (checkbox.checked) selected.add(lotId);
+        else selected.delete(lotId);
+        state.fridgeSelectedLotIds = Array.from(selected);
+        updateFridgeContentsSelectedCount();
+      });
+
+      const main = document.createElement('div');
+      main.className = 'fridge-content-lot-option-main';
+
+      const heading = document.createElement('div');
+      const title = document.createElement('strong');
+      title.textContent =
+        `${lot.variant || lot.productName || '-'} · ${lotId || '-'}`;
+      const status = document.createElement('span');
+      status.textContent = lot.statusLabel || lot.status || '-';
+      heading.append(title, status);
+
+      const detail = document.createElement('p');
+      detail.textContent =
+        `Batch ${lot.batchId || '-'} · ` +
+        `EXP ${lot.expiry ? formatNumericDate(lot.expiry) : '-'} · ` +
+        `Sisa ${formatQuantity(lot.remainingQty || 0)} botol`;
+
+      main.append(heading, detail);
+      label.append(checkbox, main);
+      container.append(label);
+    });
+
+    updateFridgeContentsSelectedCount();
+  }
+
+  function selectedFridgeContentLotIds() {
+    return state.fridgeSelectedLotIds.slice();
+  }
+
+  function updateFridgeContentsSelectedCount() {
+    setText(
+      '#fridgeContentsSelectedCount',
+      `${state.fridgeSelectedLotIds.length} lot`
+    );
+  }
+
+  async function handleFridgeContentsSubmit(event) {
+    event.preventDefault();
+    if (state.fridgeManagerSubmitting) return;
+
+    const fridge = findFridgeManagerRecord(state.selectedFridgeId);
+    const errorElement = document.getElementById('fridgeContentsError');
+    const button = document.getElementById('submitFridgeContentsButton');
+    if (errorElement) errorElement.textContent = '';
+
+    if (!fridge) {
+      if (errorElement) errorElement.textContent = 'Data kulkas tidak ditemukan.';
+      return;
+    }
+
+    try {
+      state.fridgeManagerSubmitting = true;
+      setButtonLoading(button, true, 'Menyimpan isi...');
+
+      const result = await window.MeramuAPI.request(
+        'saveFridgeContents',
+        {
+          fridgeId: fridge.fridgeId,
+          lotIds: selectedFridgeContentLotIds()
+        },
+        {token: state.session.token, timeout: 90000}
+      );
+
+      showToast(result.message || 'Isi kulkas berhasil diperbarui.', 'success');
+      closeFridgeContents(true);
+      state.fridgeManagerLoaded = false;
+      await loadFridgeManager(true);
+    } catch (error) {
+      if (errorElement) {
+        errorElement.textContent =
+          error.message || 'Isi kulkas gagal disimpan.';
+      }
+      shakeElement(document.getElementById('fridgeContentsForm'));
+    } finally {
+      state.fridgeManagerSubmitting = false;
+      setButtonLoading(button, false, 'Simpan Isi Kulkas');
+    }
+  }
+
+  function openFridgePublicPage(fridge) {
+    if (!fridge?.publicUrl) {
+      showToast('Link customer belum tersedia.', 'warning');
+      return;
+    }
+    window.open(fridge.publicUrl, '_blank', 'noopener');
+  }
+
+  async function printFridgeQrCard(fridge) {
+    if (!fridge?.publicUrl) {
+      showToast('QR kulkas belum tersedia.', 'warning');
+      return;
+    }
+
+    const printWindow = window.open('', '_blank', 'width=520,height=760');
+    if (!printWindow) {
+      showToast('Popup cetak diblokir browser.', 'warning');
+      return;
+    }
+
+    printWindow.document.write(
+      '<!doctype html><title>Menyiapkan QR Kulkas</title>' +
+      '<p style="font-family:Arial;padding:24px">Menyiapkan QR permanen...</p>'
+    );
+    printWindow.document.close();
+
+    try {
+      const qrDataUrl = await bottlingQrDataUrl(fridge.publicUrl, 560);
+      const logoUrl = new URL('assets/images/logo-meramu.png', window.location.href).href;
+
+      const documentHtml = `<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(fridge.fridgeId)} — QR Kulkas</title>
+  <style>
+    @page { size: 100mm 150mm; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body {
+      width: 100mm;
+      min-height: 150mm;
+      margin: 0;
+      background: #ffffff;
+      color: #113126;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    body { padding: 8mm; }
+    .card {
+      display: flex;
+      min-height: 134mm;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8mm 6mm;
+      border: 1.1mm solid #006838;
+      border-radius: 8mm;
+      text-align: center;
+    }
+    .logo {
+      width: 20mm;
+      height: 20mm;
+      object-fit: contain;
+    }
+    .brand {
+      margin-top: 2.5mm;
+      color: #006838;
+      font-size: 13pt;
+      font-weight: 900;
+      letter-spacing: .8mm;
+    }
+    h1 {
+      margin: 5mm 0 0;
+      font-size: 20pt;
+      line-height: 1.05;
+    }
+    .location {
+      margin-top: 2mm;
+      color: #63716a;
+      font-size: 10pt;
+    }
+    .qr {
+      width: 57mm;
+      height: 57mm;
+      margin-top: 5mm;
+      image-rendering: pixelated;
+    }
+    .instruction {
+      margin: 4mm 0 0;
+      color: #006838;
+      font-size: 14pt;
+      font-weight: 900;
+    }
+    .caption {
+      margin: 2mm 0 0;
+      font-size: 9pt;
+      line-height: 1.4;
+    }
+    .id {
+      margin-top: 4mm;
+      padding: 2mm 4mm;
+      border-radius: 999px;
+      background: #edf7f1;
+      font-size: 9pt;
+      font-weight: 800;
+    }
+    @media print {
+      body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <article class="card">
+    <img class="logo" src="${escapeHtml(logoUrl)}" alt="MERAMU">
+    <div class="brand">MERAMU KOMBUCHA</div>
+    <h1>${escapeHtml(fridge.name || 'Kulkas MERAMU')}</h1>
+    <div class="location">${escapeHtml(fridge.location || '-')}</div>
+    <img class="qr" src="${escapeHtml(qrDataUrl)}" alt="QR Kulkas">
+    <div class="instruction">SCAN PRODUK DI KULKAS INI</div>
+    <p class="caption">Lihat varian, Bottling ID, asal Batch, tanggal Bottling, dan masa simpan terbaru.</p>
+    <div class="id">${escapeHtml(fridge.fridgeId)}</div>
+  </article>
+</body>
+</html>`;
+
+      printWindow.document.open();
+      printWindow.document.write(documentHtml);
+      printWindow.document.close();
+
+      const runPrint = () => window.setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+      }, 220);
+
+      const images = Array.from(printWindow.document.images);
+      const pending = images.filter((image) => !image.complete);
+      if (!pending.length) {
+        runPrint();
+      } else {
+        let remaining = pending.length;
+        const done = () => {
+          remaining -= 1;
+          if (remaining <= 0) runPrint();
+        };
+        pending.forEach((image) => {
+          image.addEventListener('load', done, {once: true});
+          image.addEventListener('error', done, {once: true});
+        });
+        window.setTimeout(runPrint, 1800);
+      }
+
+      showToast(`QR permanen ${fridge.fridgeId} siap dicetak.`, 'success');
+    } catch (error) {
+      printWindow.close();
+      showToast(error.message || 'QR kulkas gagal dibuat.', 'error');
+    }
+  }
+
+  function openLotStockPage() {
+    navigate('stok-lot');
+  }
+
+  function lotStockStatusLabel(status) {
+    const labels = {
+      AMAN: 'AMAN',
+      PERHATIAN: 'PERHATIAN',
+      KRITIS: 'KRITIS',
+      KEDALUWARSA: 'KEDALUWARSA',
+      'BELUM TERLACAK': 'BELUM TERLACAK',
+      HABIS: 'HABIS'
+    };
+    return labels[String(status || '').toUpperCase()] || 'INFO';
+  }
+
+  function lotStockStatusTone(status) {
+    const value = String(status || '').toUpperCase();
+    if (value === 'KEDALUWARSA' || value === 'KRITIS') return 'danger';
+    if (value === 'PERHATIAN' || value === 'BELUM TERLACAK') return 'warning';
+    if (value === 'AMAN') return 'success';
+    return 'neutral';
+  }
+
+  function lotStockLots() {
+    return Array.isArray(state.lotStockData?.lots)
+      ? state.lotStockData.lots
+      : [];
+  }
+
+  function sortedFefoLotsForProduct(code, options = {}) {
+    const allowExpired = options.allowExpired === true;
+    return lotStockLots()
+      .filter((lot) => {
+        if (String(lot.productCode || '').toUpperCase() !== String(code || '').toUpperCase()) return false;
+        if (toNumber(lot.remainingQty) <= 0) return false;
+        if (!allowExpired && String(lot.status || '').toUpperCase() === 'KEDALUWARSA') return false;
+        return true;
+      })
+      .sort((a, b) => {
+        const trackedA = a.tracked ? 0 : 1;
+        const trackedB = b.tracked ? 0 : 1;
+        if (trackedA !== trackedB) return trackedA - trackedB;
+
+        const expiryA = a.expiry ? new Date(a.expiry).getTime() : Number.MAX_SAFE_INTEGER;
+        const expiryB = b.expiry ? new Date(b.expiry).getTime() : Number.MAX_SAFE_INTEGER;
+        if (expiryA !== expiryB) return expiryA - expiryB;
+
+        const dateA = a.bottlingDate ? new Date(a.bottlingDate).getTime() : 0;
+        const dateB = b.bottlingDate ? new Date(b.bottlingDate).getTime() : 0;
+        return dateA - dateB;
+      });
+  }
+
+  function previewFefoAllocations(code, qty, options = {}) {
+    const requested = Math.max(0, toNumber(qty));
+    const allocations = [];
+    let remaining = requested;
+
+    sortedFefoLotsForProduct(code, options).forEach((lot) => {
+      if (remaining <= 0) return;
+      const taken = Math.min(remaining, toNumber(lot.remainingQty));
+      if (taken <= 0) return;
+      allocations.push({
+        lotId: lot.lotId,
+        bottlingId: lot.bottlingId,
+        batchId: lot.batchId,
+        expiry: lot.expiry,
+        qty: taken,
+        hppPerUnit: toNumber(lot.hppPerUnit),
+        status: lot.status,
+        tracked: lot.tracked
+      });
+      remaining -= taken;
+    });
+
+    return {
+      allocations,
+      requested,
+      allocated: requested - remaining,
+      shortage: Math.max(0, remaining),
+      hpp: allocations.reduce((sum, allocation) => (
+        sum + allocation.qty * allocation.hppPerUnit
+      ), 0)
+    };
+  }
+
+  async function loadLotStock(force = false) {
+    if (!state.session || state.lotStockLoading) return;
+    if (state.lotStockLoaded && !force) {
+      renderLotStockPage();
+      return;
+    }
+
+    state.lotStockLoading = true;
+    renderLotStockPage();
+
+    try {
+      const result = await window.MeramuAPI.request(
+        'lot-stock',
+        {limit: 1000},
+        {token: state.session.token, method: 'GET', timeout: 60000}
+      );
+      state.lotStockData = result.data || null;
+      state.lotStockLoaded = true;
+    } catch (error) {
+      showToast(error.message || 'Stok lot gagal dimuat.', 'error');
+    } finally {
+      state.lotStockLoading = false;
+      renderLotStockPage();
+      document.querySelectorAll('.sale-entry-card').forEach(updateSaleEntry);
+      renderSaleTotals();
+    }
+  }
+
+  function resetLotStockFilters() {
+    state.lotStockSearch = '';
+    state.lotStockVariant = '';
+    state.lotStockStatus = 'AKTIF';
+    setFieldValue('lotStockSearch', '');
+    setFieldValue('lotStockVariant', '');
+    setFieldValue('lotStockStatus', 'AKTIF');
+    renderLotStockPage();
+  }
+
+  function filteredLotStockRows() {
+    const search = String(state.lotStockSearch || '').trim().toLowerCase();
+    const variant = String(state.lotStockVariant || '').toUpperCase();
+    const status = String(state.lotStockStatus || '').toUpperCase();
+
+    return lotStockLots().filter((lot) => {
+      if (variant && String(lot.variant || '').toUpperCase() !== variant) return false;
+      if (status === 'AKTIF' && toNumber(lot.remainingQty) <= 0) return false;
+      if (status && status !== 'AKTIF' && String(lot.status || '').toUpperCase() !== status) return false;
+
+      if (search) {
+        const haystack = [
+          lot.lotId,
+          lot.bottlingId,
+          lot.batchId,
+          lot.productCode,
+          lot.productName,
+          lot.variant
+        ].join(' ').toLowerCase();
+        if (!haystack.includes(search)) return false;
+      }
+
+      return true;
+    });
+  }
+
+  function renderLotStockPage() {
+    const container = document.getElementById('lotStockList');
+    if (!container) return;
+
+    const data = state.lotStockData || {};
+    const summary = data.summary || {};
+    const reconciliation = Array.isArray(data.reconciliation)
+      ? data.reconciliation
+      : [];
+    const visibleRows = filteredLotStockRows();
+
+    setText('#lotStockActiveLots', formatQuantity(summary.activeLots || 0));
+    setText('#lotStockSellableQty', formatQuantity(summary.sellableQty || 0));
+    setText('#lotStockExpiringLots', formatQuantity(summary.expiringLots || 0));
+    setText('#lotStockExpiredQty', formatQuantity(summary.expiredQty || 0));
+    setText('#lotStockUntrackedQty', formatQuantity(summary.untrackedQty || 0));
+    setText('#lotStockMismatchCount', formatQuantity(summary.mismatchProducts || 0));
+    setText('#lotStockCardCount', String(summary.activeLots || 0));
+    setText('#lotStockVisibleCount', `${visibleRows.length} lot`);
+    setText(
+      '#lotStockGeneratedAt',
+      data.generatedAt
+        ? `Diperbarui ${formatDateTime(data.generatedAt)} · FEFO aktif`
+        : state.lotStockLoading
+          ? 'Memuat stok per lot...'
+          : 'Belum ada data lot'
+    );
+    setText(
+      '#lotStockListCaption',
+      state.lotStockLoading
+        ? 'Mengambil saldo Bottling ID terbaru...'
+        : visibleRows.length
+          ? `${visibleRows.length} lot sesuai filter`
+          : 'Tidak ada lot yang sesuai filter'
+    );
+
+    const mismatchRows = reconciliation.filter((item) => !item.match);
+    const reconciliationCard = document.getElementById('lotStockReconciliationCard');
+    if (reconciliationCard) {
+      reconciliationCard.hidden = mismatchRows.length === 0;
+    }
+    setText(
+      '#lotStockReconciliationMessage',
+      mismatchRows.length
+        ? mismatchRows.map((item) => (
+            `${item.productName}: jurnal ${formatQuantity(item.aggregateStock)}, ` +
+            `lot ${formatQuantity(item.lotStock)}, selisih ${formatQuantity(item.difference)}`
+          )).join(' · ')
+        : 'Saldo jurnal dan lot sudah sama.'
+    );
+
+    container.replaceChildren();
+
+    if (state.lotStockLoading && !state.lotStockLoaded) {
+      const loading = document.createElement('div');
+      loading.className = 'empty-state';
+      loading.innerHTML = '<p>Memuat stok per Bottling ID...</p>';
+      container.append(loading);
+      return;
+    }
+
+    if (!visibleRows.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.innerHTML = `
+        <div class="empty-state-icon">□</div>
+        <h3>Belum ada lot</h3>
+        <p>Lot akan terbentuk otomatis saat Bottling disimpan.</p>
+      `;
+      container.append(empty);
+      return;
+    }
+
+    visibleRows.forEach((lot) => {
+      const card = document.createElement('article');
+      card.className = `lot-stock-entry tone-${lotStockStatusTone(lot.status)}`;
+
+      const header = document.createElement('div');
+      header.className = 'lot-stock-entry-header';
+
+      const identity = document.createElement('div');
+      identity.className = 'lot-stock-entry-identity';
+
+      const icon = document.createElement('span');
+      icon.className = 'lot-stock-entry-icon';
+      icon.textContent = String(lot.variant || 'L').slice(0, 1);
+
+      const copy = document.createElement('div');
+      const title = document.createElement('strong');
+      title.textContent = lot.lotId || 'Lot tanpa ID';
+
+      const subtitle = document.createElement('span');
+      subtitle.textContent =
+        `${lot.productName || lot.productCode || '-'} · ` +
+        `${lot.batchId ? `Batch ${lot.batchId}` : 'Stok lama'}`;
+
+      copy.append(title, subtitle);
+      identity.append(icon, copy);
+
+      const status = document.createElement('span');
+      status.className = `lot-stock-status tone-${lotStockStatusTone(lot.status)}`;
+      status.textContent = lotStockStatusLabel(lot.status);
+
+      header.append(identity, status);
+
+      const metrics = document.createElement('div');
+      metrics.className = 'lot-stock-entry-metrics';
+
+      const metricData = [
+        ['Bottling', lot.bottlingDate ? formatNumericDate(lot.bottlingDate) : '-'],
+        ['EXP', lot.expiry ? formatNumericDate(lot.expiry) : 'Belum tercatat'],
+        ['Produksi/Masuk', formatQuantity(toNumber(lot.producedQty) + toNumber(lot.inboundAdjustmentQty))],
+        ['Terjual', formatQuantity(lot.soldQty || 0)],
+        ['Sisa', `${formatQuantity(lot.remainingQty || 0)} botol`],
+        ['Urutan FEFO', lot.sellable ? (lot.daysRemaining === null ? 'Terakhir' : `H-${lot.daysRemaining}`) : 'Diblokir']
+      ];
+
+      metricData.forEach(([label, value]) => {
+        const metric = document.createElement('div');
+        const labelElement = document.createElement('span');
+        labelElement.textContent = label;
+        const valueElement = document.createElement('strong');
+        valueElement.textContent = value;
+        metric.append(labelElement, valueElement);
+        metrics.append(metric);
+      });
+
+      const originalQty = Math.max(
+        0,
+        toNumber(lot.producedQty) + toNumber(lot.inboundAdjustmentQty)
+      );
+      const remainingQty = Math.max(0, toNumber(lot.remainingQty));
+      const percent = originalQty > 0
+        ? Math.max(0, Math.min(100, (remainingQty / originalQty) * 100))
+        : 0;
+
+      const progress = document.createElement('div');
+      progress.className = 'lot-stock-progress';
+      progress.innerHTML = `
+        <div><span>Sisa lot</span><strong>${formatQuantity(remainingQty)} / ${formatQuantity(originalQty)}</strong></div>
+        <div class="lot-stock-progress-track"><span style="width:${percent}%"></span></div>
+      `;
+
+      const footer = document.createElement('div');
+      footer.className = 'lot-stock-entry-footer';
+
+      const trace = document.createElement('span');
+      trace.textContent = lot.tracked
+        ? 'Terlacak dari Bottling ID'
+        : 'Stok lama/penyesuaian tanpa EXP';
+      footer.append(trace);
+
+      if (lot.bottlingId && canNavigateToPage('label-bottling')) {
+        const button = document.createElement('button');
+        button.className = 'btn btn-secondary';
+        button.type = 'button';
+        button.textContent = 'Buka Label';
+        button.addEventListener('click', () => {
+          state.selectedBottlingLabelId = lot.bottlingId;
+          openBottlingLabelPage();
+        });
+        footer.append(button);
+      }
+
+      card.append(header, metrics, progress, footer);
+      container.append(card);
+    });
+  }
+
+  function openDeviceSessionsPage() {
+    if (!isCurrentAppAdmin()) {
+      showToast('Perangkat dan sesi hanya tersedia untuk Administrator.', 'warning');
+      return;
+    }
+    navigate('perangkat-sesi');
+  }
+
+  async function loadDeviceSessions(force = false) {
+    if (!isCurrentAppAdmin() || state.deviceSessionsLoading) return;
+    if (state.deviceSessionsLoaded && !force) {
+      renderDeviceSessions();
+      return;
+    }
+    state.deviceSessionsLoading = true;
+    renderDeviceSessions();
+    try {
+      state.deviceSessionsData = await window.MeramuAPI.request(
+        'device-sessions',
+        {},
+        {token: state.session.token, method: 'GET', timeout: 60000}
+      );
+      state.deviceSessionsLoaded = true;
+    } catch (error) {
+      showToast(error.message || 'Daftar perangkat gagal dimuat.', 'error');
+    } finally {
+      state.deviceSessionsLoading = false;
+      renderDeviceSessions();
+    }
+  }
+
+  function resetDeviceSessionFilters() {
+    state.deviceSessionSearch = '';
+    state.deviceSessionUserFilter = '';
+    state.deviceSessionStatusFilter = 'ACTIVE';
+    setFieldValue('deviceSessionSearch', '');
+    setFieldValue('deviceSessionUserFilter', '');
+    setFieldValue('deviceSessionStatusFilter', 'ACTIVE');
+    renderDeviceSessions();
+  }
+
+  function deviceSessionStatusLabel(status) {
+    const labels = {ACTIVE: 'AKTIF', LOGGED_OUT: 'KELUAR', REVOKED: 'DIKELUARKAN', REPLACED: 'DIGANTI', EXPIRED: 'KEDALUWARSA'};
+    return labels[String(status || '').toUpperCase()] || statusTitle(status);
+  }
+
+  function deviceSessionStatusTone(status) {
+    const value = String(status || '').toUpperCase();
+    if (value === 'ACTIVE') return 'success';
+    if (value === 'REVOKED' || value === 'REPLACED') return 'danger';
+    if (value === 'EXPIRED') return 'warning';
+    return 'info';
+  }
+
+  function deviceTypeIcon(type) {
+    const value = String(type || '').toUpperCase();
+    if (value === 'MOBILE') return 'HP';
+    if (value === 'TABLET') return 'TB';
+    if (value === 'PWA') return 'APP';
+    return 'PC';
+  }
+
+  function relativeSessionActivity(value) {
+    const date = parseAnyDate(value);
+    if (!date || Number.isNaN(date.getTime())) return '-';
+    const minutes = Math.max(0, Math.floor((Date.now() - date.getTime()) / 60000));
+    if (minutes < 1) return 'Baru saja';
+    if (minutes < 60) return `${minutes} menit lalu`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} jam lalu`;
+    return `${Math.floor(hours / 24)} hari lalu`;
+  }
+
+  function filteredDeviceSessions() {
+    const sessions = Array.isArray(state.deviceSessionsData?.sessions) ? state.deviceSessionsData.sessions : [];
+    const search = String(state.deviceSessionSearch || '').trim().toLowerCase();
+    const user = String(state.deviceSessionUserFilter || '').toLowerCase();
+    const status = String(state.deviceSessionStatusFilter || '').toUpperCase();
+    return sessions.filter((session) => {
+      if (user && String(session.username || '').toLowerCase() !== user) return false;
+      if (status && String(session.status || '').toUpperCase() !== status) return false;
+      if (search) {
+        const haystack = [session.name, session.username, session.deviceName, session.browser, session.os, session.deviceType].join(' ').toLowerCase();
+        if (!haystack.includes(search)) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderDeviceSessionUserFilter(sessions) {
+    const select = document.getElementById('deviceSessionUserFilter');
+    if (!select) return;
+    const current = state.deviceSessionUserFilter;
+    const users = new Map();
+    sessions.forEach((session) => users.set(session.username, session.name || session.username));
+    select.replaceChildren();
+    const all = document.createElement('option'); all.value = ''; all.textContent = 'Semua pengguna'; select.append(all);
+    [...users.entries()].sort((a,b) => a[1].localeCompare(b[1], 'id')).forEach(([username,name]) => {
+      const option = document.createElement('option'); option.value = username; option.textContent = `${name} · @${username}`; select.append(option);
+    });
+    select.value = users.has(current) ? current : '';
+    if (!users.has(current)) state.deviceSessionUserFilter = '';
+  }
+
+  function renderDeviceSessions() {
+    const container = document.getElementById('deviceSessionList');
+    if (!container) return;
+    const data = state.deviceSessionsData || {};
+    const sessions = Array.isArray(data.sessions) ? data.sessions : [];
+    const summary = data.summary || {};
+    const policies = data.policies || {};
+    const visible = filteredDeviceSessions();
+
+    setText('#deviceSessionActiveCount', formatQuantity(summary.activeSessions || 0));
+    setText('#deviceSessionUserCount', formatQuantity(summary.activeUsers || 0));
+    setText('#deviceSessionNewCount', formatQuantity(summary.newDevicesSevenDays || 0));
+    setText('#deviceSessionFailedCount', formatQuantity(summary.failedLogins24Hours || 0));
+    setText('#deviceSessionCardCount', String(summary.activeSessions || 0));
+    setText('#devicePolicyAdmin', `${policies.ADMIN?.maxDevices || 3} perangkat`);
+    setText('#devicePolicyProduction', `${policies.PRODUKSI?.maxDevices || 2} perangkat`);
+    setText('#devicePolicyCashier', `${policies.KASIR?.maxDevices || 1} perangkat`);
+    const durationHours = Math.round((policies.ADMIN?.absoluteSeconds || 43200) / 3600);
+    const idleHours = Math.round((policies.ADMIN?.idleSeconds || 7200) / 3600);
+    setText('#devicePolicyDuration', `${durationHours} jam`);
+    document.querySelector('#devicePolicyDuration + small')?.replaceChildren(document.createTextNode(`Keluar setelah tidak aktif ${idleHours} jam`));
+    setText('#deviceSessionVisibleCount', `${visible.length} sesi`);
+    setText('#deviceSessionListCaption', state.deviceSessionsLoading ? 'Memuat perangkat...' : `${visible.length} dari ${sessions.length} catatan sesi`);
+    setText('#deviceSessionGeneratedAt', data.generatedAt ? `Diperbarui ${formatDateTime(data.generatedAt)}` : 'Belum ada data sesi');
+    renderDeviceSessionUserFilter(sessions);
+
+    container.replaceChildren();
+    if (state.deviceSessionsLoading && !state.deviceSessionsLoaded) {
+      container.innerHTML = '<div class="empty-state"><p>Memuat sesi perangkat...</p></div>';
+      renderFailedLoginHistory([]);
+      return;
+    }
+    if (!visible.length) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✓</div><h3>Tidak ada sesi</h3><p>Tidak ada perangkat yang sesuai dengan filter.</p></div>';
+      renderFailedLoginHistory(data.failedLogins || []);
+      return;
+    }
+
+    visible.forEach((session) => {
+      const card = document.createElement('article');
+      card.className = `device-session-entry status-${String(session.status || '').toLowerCase()} ${session.current ? 'is-current' : ''}`;
+      const icon = document.createElement('span'); icon.className = 'device-session-entry-icon'; icon.textContent = deviceTypeIcon(session.deviceType);
+      const main = document.createElement('div'); main.className = 'device-session-entry-main';
+      const head = document.createElement('div'); head.className = 'device-session-entry-heading';
+      const identity = document.createElement('div'); identity.className = 'device-session-entry-title';
+      const title = document.createElement('strong'); title.textContent = session.deviceName || 'Perangkat';
+      const chips = document.createElement('div'); chips.className = 'device-session-entry-chips';
+      const status = document.createElement('span'); status.className = `system-status-pill`; status.dataset.tone = deviceSessionStatusTone(session.status); status.textContent = deviceSessionStatusLabel(session.status); chips.append(status);
+      if (session.current) { const current = document.createElement('span'); current.className = 'device-current-chip'; current.textContent = 'PERANGKAT INI'; chips.append(current); }
+      if (session.newDevice) { const fresh = document.createElement('span'); fresh.className = 'device-new-chip'; fresh.textContent = 'PERANGKAT BARU'; chips.append(fresh); }
+      identity.append(title, chips);
+      const activity = document.createElement('span'); activity.className = 'device-session-entry-activity'; activity.textContent = relativeSessionActivity(session.lastActiveAt);
+      head.append(identity, activity);
+      const meta = document.createElement('div'); meta.className = 'device-session-entry-meta';
+      meta.innerHTML = `<div><span>Pengguna</span><strong>${escapeHtml(session.name || session.username)} · @${escapeHtml(session.username || '-')}</strong></div><div><span>Browser & OS</span><strong>${escapeHtml(session.browser || '-')} · ${escapeHtml(session.os || '-')}</strong></div><div><span>Login</span><strong>${escapeHtml(session.loginAt ? formatDateTime(session.loginAt) : '-')}</strong></div><div><span>Kedaluwarsa</span><strong>${escapeHtml(session.expiresAt ? formatDateTime(session.expiresAt) : '-')}</strong></div>`;
+      const detail = document.createElement('p'); detail.textContent = [session.deviceType, session.screen, session.timezone, session.standalone ? 'PWA' : 'Browser'].filter(Boolean).join(' · ');
+      const actions = document.createElement('div'); actions.className = 'device-session-entry-actions';
+      if (session.status === 'ACTIVE' && !session.current) {
+        const revoke = document.createElement('button'); revoke.type = 'button'; revoke.className = 'btn btn-danger-soft'; revoke.textContent = 'Keluar Paksa'; revoke.addEventListener('click', () => openDeviceSessionRevokeSheet({mode:'single', session})); actions.append(revoke);
+        const allUser = document.createElement('button'); allUser.type = 'button'; allUser.className = 'btn btn-secondary'; allUser.textContent = 'Keluarkan Semua Milik Pengguna'; allUser.addEventListener('click', () => openDeviceSessionRevokeSheet({mode:'user', session})); actions.append(allUser);
+      } else if (session.current) {
+        const label = document.createElement('span'); label.className = 'device-session-current-note'; label.textContent = 'Sesi ini dipertahankan saat memakai tombol keluarkan semua.'; actions.append(label);
+      } else if (session.reason) {
+        const reason = document.createElement('span'); reason.className = 'device-session-history-reason'; reason.textContent = `${session.reason}${session.revokedBy ? ` · oleh ${session.revokedBy}` : ''}`; actions.append(reason);
+      }
+      main.append(head, meta, detail, actions); card.append(icon, main); container.append(card);
+    });
+    renderFailedLoginHistory(data.failedLogins || []);
+  }
+
+  function renderFailedLoginHistory(rows) {
+    const container = document.getElementById('failedLoginList');
+    if (!container) return;
+    const data = Array.isArray(rows) ? rows : [];
+    setText('#failedLoginHistoryCount', `${data.length} catatan`);
+    container.replaceChildren();
+    if (!data.length) { container.innerHTML = '<div class="empty-state"><p>Tidak ada login gagal dalam 30 hari terakhir.</p></div>'; return; }
+    data.slice(0,20).forEach((row) => {
+      const item = document.createElement('article'); item.className = 'failed-login-entry';
+      item.innerHTML = `<span class="failed-login-icon">!</span><div><strong>@${escapeHtml(row.username || '-')}</strong><span>${escapeHtml(row.timestamp ? formatDateTime(row.timestamp) : '-')}</span><small>${escapeHtml(row.note || 'Kredensial tidak sesuai')}</small></div>`;
+      container.append(item);
+    });
+  }
+
+  function openDeviceSessionRevokeSheet(options = {}) {
+    if (!isCurrentAppAdmin()) return;
+    const mode = options.mode || 'single';
+    const session = options.session || {};
+    setFieldValue('deviceSessionRevokeMode', mode);
+    setFieldValue('deviceSessionRevokeSessionId', session.sessionId || '');
+    setFieldValue('deviceSessionRevokeUsername', session.username || '');
+    setFieldValue('deviceSessionRevokeReason', '');
+    const confirmed = document.getElementById('deviceSessionRevokeConfirmed'); if (confirmed) confirmed.checked = false;
+    setText('#deviceSessionRevokeError', '');
+    const title = mode === 'all-other' ? 'Keluarkan Semua Perangkat Lain' : mode === 'user' ? `Keluarkan Semua Sesi ${session.name || session.username || ''}` : `Keluarkan ${session.deviceName || 'Perangkat'}`;
+    const target = mode === 'all-other' ? 'Semua sesi aktif selain perangkat ini' : mode === 'user' ? `Semua perangkat aktif milik @${session.username || '-'}` : session.deviceName || '-';
+    setText('#deviceSessionRevokeTitle', title);
+    setText('#deviceSessionRevokeSubtitle', mode === 'all-other' ? 'Perangkat yang sedang digunakan tetap aktif.' : 'Perangkat akan diminta login kembali.');
+    setText('#deviceSessionRevokeTarget', target);
+    setText('#deviceSessionRevokeUser', mode === 'all-other' ? 'Seluruh pengguna' : `${session.name || '-'} · @${session.username || '-'}`);
+    openSheet('deviceSessionRevokeSheet','deviceSessionRevokeBackdrop');
+    setTimeout(() => document.getElementById('deviceSessionRevokeReason')?.focus(),220);
+  }
+
+  function closeDeviceSessionRevokeSheet(force = false) {
+    if (state.deviceSessionActionSubmitting && !force) return;
+    closeSheet('deviceSessionRevokeSheet','deviceSessionRevokeBackdrop');
+  }
+
+  async function handleDeviceSessionRevokeSubmit(event) {
+    event.preventDefault();
+    if (!isCurrentAppAdmin() || state.deviceSessionActionSubmitting) return;
+    const mode = document.getElementById('deviceSessionRevokeMode')?.value || 'single';
+    const sessionId = document.getElementById('deviceSessionRevokeSessionId')?.value || '';
+    const username = document.getElementById('deviceSessionRevokeUsername')?.value || '';
+    const reason = document.getElementById('deviceSessionRevokeReason')?.value.trim() || '';
+    const confirmed = Boolean(document.getElementById('deviceSessionRevokeConfirmed')?.checked);
+    const error = document.getElementById('deviceSessionRevokeError');
+    const button = document.getElementById('submitDeviceSessionRevokeButton');
+    if (error) error.textContent = '';
+    try {
+      if (reason.length < 8) throw new Error('Alasan keluar paksa minimal 8 karakter.');
+      if (!confirmed) throw new Error('Centang konfirmasi terlebih dahulu.');
+      state.deviceSessionActionSubmitting = true;
+      setButtonLoading(button,true,'Mengeluarkan...');
+      const action = mode === 'all-other' ? 'revokeAllOtherSessions' : mode === 'user' ? 'revokeUserSessions' : 'revokeDeviceSession';
+      const result = await window.MeramuAPI.request(action,{sessionId,username,reason},{token:state.session.token,timeout:60000});
+      closeDeviceSessionRevokeSheet(true);
+      showToast(result.message || 'Sesi berhasil dikeluarkan.','success');
+      state.deviceSessionsLoaded = false;
+      await loadDeviceSessions(true);
+      if (result.requiresLogout) await logout();
+    } catch (err) {
+      if (error) error.textContent = err.message || 'Sesi gagal dikeluarkan.';
+      shakeElement(document.getElementById('deviceSessionRevokeForm'));
+    } finally {
+      state.deviceSessionActionSubmitting = false;
+      setButtonLoading(button,false,'Keluar Paksa');
+    }
+  }
+
+  function openOperationalAlertsPage() {
+    navigate('notifikasi');
+  }
+
+  function operationalAlertCategoryLabel(category) {
+    const labels = {
+      BATCH: 'Batch',
+      STOCK: 'Stok',
+      EXP: 'Kedaluwarsa',
+      BACKUP: 'Backup',
+      CASH: 'Tutup Kas',
+      SYSTEM: 'Sistem',
+      SECURITY: 'Keamanan'
+    };
+    return labels[String(category || '').toUpperCase()] || 'Operasional';
+  }
+
+  function operationalAlertSeverityLabel(severity) {
+    const labels = {
+      danger: 'Kritis',
+      warning: 'Perhatian',
+      info: 'Pantau',
+      success: 'Aman'
+    };
+    return labels[String(severity || '').toLowerCase()] || 'Informasi';
+  }
+
+  function operationalAlertIcon(alert) {
+    const category = String(alert?.category || alert?.kind || '').toUpperCase();
+    const icons = {
+      BATCH: 'B',
+      STOCK: 'S',
+      EXP: 'E',
+      BACKUP: '↻',
+      CASH: 'K',
+      SYSTEM: '!',
+      SECURITY: 'A'
+    };
+    return icons[category] || '!';
+  }
+
+  async function loadOperationalAlerts(force = false) {
+    if (!state.session || state.operationalAlertsLoading) return;
+
+    if (state.operationalAlertsLoaded && !force) {
+      renderOperationalAlerts();
+      return;
+    }
+
+    state.operationalAlertsLoading = true;
+    renderOperationalAlerts();
+
+    try {
+      const result = await window.MeramuAPI.request(
+        'operational-alerts',
+        {},
+        {token: state.session.token, method: 'GET', timeout: 45000}
+      );
+      state.operationalAlertsData = result.data || null;
+      state.operationalAlertsLoaded = true;
+    } catch (error) {
+      showToast(error.message || 'Pusat Notifikasi gagal dimuat.', 'error');
+    } finally {
+      state.operationalAlertsLoading = false;
+      renderOperationalAlerts();
+      renderAttention(state.initialData?.dashboard || {});
+    }
+  }
+
+  function resetOperationalAlertFilters() {
+    state.operationalAlertSearch = '';
+    state.operationalAlertCategory = '';
+    state.operationalAlertSeverity = '';
+    state.operationalAlertReadState = '';
+
+    setFieldValue('operationalAlertSearch', '');
+    setFieldValue('operationalAlertCategory', '');
+    setFieldValue('operationalAlertSeverity', '');
+    setFieldValue('operationalAlertReadState', '');
+
+    renderOperationalAlerts();
+  }
+
+  function filteredOperationalAlerts() {
+    const alerts = Array.isArray(state.operationalAlertsData?.alerts)
+      ? state.operationalAlertsData.alerts
+      : [];
+    const search = String(state.operationalAlertSearch || '').trim().toLowerCase();
+    const category = String(state.operationalAlertCategory || '').toUpperCase();
+    const severity = String(state.operationalAlertSeverity || '').toLowerCase();
+    const readState = String(state.operationalAlertReadState || '').toUpperCase();
+
+    return alerts.filter((alert) => {
+      if (category && String(alert.category || '').toUpperCase() !== category) return false;
+      if (severity && String(alert.severity || '').toLowerCase() !== severity) return false;
+      if (readState && String(alert.state || 'UNREAD').toUpperCase() !== readState) return false;
+
+      if (search) {
+        const haystack = [
+          alert.title,
+          alert.note,
+          alert.reference,
+          alert.batchId,
+          alert.bottlingId,
+          operationalAlertCategoryLabel(alert.category)
+        ].join(' ').toLowerCase();
+        if (!haystack.includes(search)) return false;
+      }
+
+      return true;
+    });
+  }
+
+  function renderOperationalAlerts() {
+    const container = document.getElementById('operationalAlertList');
+    if (!container) return;
+
+    const data = state.operationalAlertsData || {};
+    const summary = data.summary || {};
+    const settings = data.settings || {};
+    const visibleAlerts = filteredOperationalAlerts();
+
+    setText('#operationalAlertUnreadCount', formatQuantity(summary.unread || 0));
+    setText('#operationalAlertDangerCount', formatQuantity(summary.danger || 0));
+    setText('#operationalAlertExpCount', formatQuantity(summary.exp || 0));
+    setText('#operationalAlertStockCount', formatQuantity(summary.stock || 0));
+    setText('#operationalAlertSuppressedCount', formatQuantity(summary.suppressed || 0));
+    setText('#operationalAlertCardCount', String(summary.unread || 0));
+    setText('#operationalAlertVisibleCount', `${visibleAlerts.length} peringatan`);
+    setText(
+      '#operationalAlertGeneratedAt',
+      data.generatedAt
+        ? `Diperbarui ${formatDateTime(data.generatedAt)} · Tunda ${settings.snoozeHours || 24} jam`
+        : state.operationalAlertsLoading
+          ? 'Memuat notifikasi...'
+          : 'Belum ada data notifikasi'
+    );
+    setText(
+      '#operationalAlertListCaption',
+      state.operationalAlertsLoading
+        ? 'Mengambil kondisi terbaru...'
+        : visibleAlerts.length
+          ? `${visibleAlerts.length} dari ${summary.active || visibleAlerts.length} peringatan aktif`
+          : 'Tidak ada peringatan yang sesuai filter'
+    );
+
+    container.replaceChildren();
+
+    if (state.operationalAlertsLoading && !state.operationalAlertsLoaded) {
+      const loading = document.createElement('div');
+      loading.className = 'empty-state';
+      loading.innerHTML = '<p>Memuat notifikasi operasional...</p>';
+      container.append(loading);
+      return;
+    }
+
+    if (!visibleAlerts.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state operational-alert-empty';
+      empty.innerHTML = `
+        <div class="empty-state-icon">✓</div>
+        <h3>Tidak ada peringatan aktif</h3>
+        <p>Semua kondisi aman atau tidak ada notifikasi yang sesuai dengan filter.</p>
+      `;
+      container.append(empty);
+      return;
+    }
+
+    visibleAlerts.forEach((alert) => {
+      const card = document.createElement('article');
+      card.className =
+        `operational-alert-entry severity-${alert.severity || 'info'} ` +
+        `state-${String(alert.state || 'UNREAD').toLowerCase()}`;
+
+      const icon = document.createElement('span');
+      icon.className = 'operational-alert-entry-icon';
+      icon.textContent = operationalAlertIcon(alert);
+
+      const main = document.createElement('div');
+      main.className = 'operational-alert-entry-main';
+
+      const heading = document.createElement('div');
+      heading.className = 'operational-alert-entry-heading';
+
+      const titleWrap = document.createElement('div');
+      titleWrap.className = 'operational-alert-entry-title';
+
+      const title = document.createElement('strong');
+      title.textContent = alert.title || 'Peringatan operasional';
+
+      const chips = document.createElement('div');
+      chips.className = 'operational-alert-entry-chips';
+
+      const categoryChip = document.createElement('span');
+      categoryChip.className = 'operational-alert-chip category';
+      categoryChip.textContent = operationalAlertCategoryLabel(alert.category);
+
+      const severityChip = document.createElement('span');
+      severityChip.className = `operational-alert-chip severity-${alert.severity || 'info'}`;
+      severityChip.textContent = alert.statusLabel || operationalAlertSeverityLabel(alert.severity);
+
+      chips.append(categoryChip, severityChip);
+
+      if (String(alert.state || 'UNREAD') === 'READ') {
+        const readChip = document.createElement('span');
+        readChip.className = 'operational-alert-chip read';
+        readChip.textContent = 'SUDAH DIBACA';
+        chips.append(readChip);
+      }
+
+      titleWrap.append(title, chips);
+
+      const due = document.createElement('span');
+      due.className = 'operational-alert-entry-due';
+      if (alert.daysRemaining !== null && alert.daysRemaining !== undefined) {
+        due.textContent = alert.daysRemaining < 0
+          ? `${Math.abs(alert.daysRemaining)} hari lewat`
+          : alert.daysRemaining === 0
+            ? 'Hari ini'
+            : `H-${alert.daysRemaining}`;
+      } else {
+        due.textContent = operationalAlertSeverityLabel(alert.severity);
+      }
+
+      heading.append(titleWrap, due);
+
+      const note = document.createElement('p');
+      note.textContent = alert.note || '-';
+
+      const actions = document.createElement('div');
+      actions.className = 'operational-alert-entry-actions';
+
+      const openButton = document.createElement('button');
+      openButton.className = 'btn btn-primary';
+      openButton.type = 'button';
+      openButton.textContent = 'Buka';
+      openButton.addEventListener('click', () => handleOperationalAlertRoute(alert));
+
+      if (String(alert.state || 'UNREAD') === 'UNREAD') {
+        const readButton = document.createElement('button');
+        readButton.className = 'btn btn-secondary';
+        readButton.type = 'button';
+        readButton.textContent = 'Sudah Dibaca';
+        readButton.addEventListener('click', () => {
+          updateOperationalAlertState(alert, 'READ');
+        });
+        actions.append(readButton);
+      }
+
+      const snoozeButton = document.createElement('button');
+      snoozeButton.className = 'btn btn-secondary';
+      snoozeButton.type = 'button';
+      snoozeButton.textContent = `Tunda ${settings.snoozeHours || 24} Jam`;
+      snoozeButton.addEventListener('click', () => {
+        updateOperationalAlertState(
+          alert,
+          'SNOOZED',
+          settings.snoozeHours || 24
+        );
+      });
+
+      const resolveButton = document.createElement('button');
+      resolveButton.className = 'btn btn-success-soft';
+      resolveButton.type = 'button';
+      resolveButton.textContent = 'Selesaikan';
+      resolveButton.addEventListener('click', () => {
+        updateOperationalAlertState(alert, 'RESOLVED');
+      });
+
+      actions.prepend(openButton);
+      actions.append(snoozeButton, resolveButton);
+
+      main.append(heading, note, actions);
+      card.append(icon, main);
+      container.append(card);
+    });
+  }
+
+  async function updateOperationalAlertState(alert, nextState, hours = 24) {
+    if (!alert || state.operationalAlertActionSubmitting) return;
+
+    if (nextState === 'RESOLVED') {
+      const approved = window.confirm(
+        'Selesaikan notifikasi ini? Notifikasi akan muncul kembali apabila kondisi datanya berubah.'
+      );
+      if (!approved) return;
+    }
+
+    state.operationalAlertActionSubmitting = true;
+
+    try {
+      const result = await window.MeramuAPI.request(
+        'updateOperationalAlert',
+        {
+          alertId: alert.id,
+          state: nextState,
+          hours
+        },
+        {token: state.session.token, timeout: 45000}
+      );
+
+      showToast(result.message || 'Status notifikasi diperbarui.', 'success');
+      state.operationalAlertsLoaded = false;
+      await loadOperationalAlerts(true);
+    } catch (error) {
+      showToast(error.message || 'Status notifikasi gagal diperbarui.', 'error');
+    } finally {
+      state.operationalAlertActionSubmitting = false;
+    }
+  }
+
+  function handleOperationalAlertRoute(alert) {
+    if (!alert) return;
+
+    switch (String(alert.route || '').toLowerCase()) {
+      case 'stok-detail':
+        openStockDetailPage(alert.group || 'PRODUK');
+        break;
+      case 'label-bottling':
+        if (alert.bottlingId) {
+          state.selectedBottlingLabelId = String(alert.bottlingId);
+        }
+        openBottlingLabelPage();
+        break;
+      case 'stok-lot':
+        state.lotStockSearch = String(alert.reference || alert.bottlingId || '');
+        setFieldValue('lotStockSearch', state.lotStockSearch);
+        openLotStockPage();
+        break;
+      case 'produksi':
+        if (alert.action === 'FERMENTATION') {
+          openFermentationSheet(alert.batchId || alert.reference || '');
+        } else if (alert.action === 'BOTTLING') {
+          openBottlingSheet('ORIGINAL');
+        } else {
+          navigate('produksi');
+        }
+        break;
+      case 'backup-pemulihan':
+        openBackupManagerPage();
+        break;
+      case 'tutup-kas':
+        openCashClosingPage();
+        break;
+      case 'pengaturan':
+        openAppSettingsPage();
+        break;
+      case 'perangkat-sesi':
+        openDeviceSessionsPage();
+        break;
+      default:
+        navigate('dashboard');
+    }
+  }
+
+  async function syncOperationalAlertsCalendar() {
+    if (!isCurrentAppAdmin() || state.operationalAlertActionSubmitting) return;
+
+    const button = document.getElementById('syncOperationalAlertsButton');
+    state.operationalAlertActionSubmitting = true;
+    setButtonLoading(button, true, 'Menyinkronkan...');
+
+    try {
+      const result = await window.MeramuAPI.request(
+        'syncOperationalAlerts',
+        {},
+        {token: state.session.token, timeout: 120000, retries: 0}
+      );
+
+      showToast(result.message || 'Peringatan Calendar berhasil disinkronkan.', 'success');
+      state.operationalAlertsLoaded = false;
+      await loadOperationalAlerts(true);
+    } catch (error) {
+      showToast(error.message || 'Peringatan Calendar gagal disinkronkan.', 'error');
+    } finally {
+      state.operationalAlertActionSubmitting = false;
+      setButtonLoading(button, false, 'Sinkronkan Kalender');
+    }
+  }
+
+  function openBackupManagerPage() {
+    if (!isCurrentAppAdmin()) {
+      showToast('Backup dan pemulihan hanya tersedia untuk Administrator.', 'warning');
+      return;
+    }
+    navigate('backup-pemulihan');
+  }
+
+  function formatBackupFileSize(backup) {
+    const bytes = Number(backup?.sizeBytes || 0);
+    if (bytes <= 0) return 'Google Sheets';
+
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let value = bytes;
+    let index = 0;
+
+    while (value >= 1024 && index < units.length - 1) {
+      value /= 1024;
+      index += 1;
+    }
+
+    return `${value.toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+  }
+
+  function backupInspectionTone(inspection) {
+    if (!inspection) return 'loading';
+    return inspection.ready ? 'success' : 'error';
+  }
+
+  async function loadBackupManager(force = false) {
+    if (!isCurrentAppAdmin() || state.backupManagerLoading) return;
+
+    if (state.backupManagerData && !force) {
+      renderBackupManager();
+      return;
+    }
+
+    state.backupManagerLoading = true;
+    renderBackupManager();
+
+    try {
+      state.backupManagerData = await window.MeramuAPI.request(
+        'backup-manager',
+        {limit: 40},
+        {token: state.session.token, method: 'GET', timeout: 60000}
+      );
+    } catch (error) {
+      showToast(error.message || 'Daftar backup gagal dimuat.', 'error');
+    } finally {
+      state.backupManagerLoading = false;
+      renderBackupManager();
+    }
+  }
+
+  function renderBackupManager() {
+    const container = document.getElementById('backupManagerList');
+    if (!container) return;
+
+    const data = state.backupManagerData || {};
+    const backups = Array.isArray(data.backups) ? data.backups : [];
+    const status = data.status || {};
+    const database = data.database || {};
+    const lastRestore = data.lastRestore || {};
+
+    setText('#backupManagerDatabaseName', database.name || 'MERAMU');
+    setText(
+      '#backupManagerDatabaseMeta',
+      database.backendVersion
+        ? `${database.sheetCount || 0} sheet inti · Schema ${database.schemaVersion || '-'} · Backend ${database.backendVersion}`
+        : 'Memeriksa database...'
+    );
+    setText('#backupManagerLastBackup', status.lastBackupFileName || 'Belum ada');
+    setText(
+      '#backupManagerLastBackupTime',
+      status.lastBackupAt ? formatDateTime(status.lastBackupAt) : '-'
+    );
+    setText(
+      '#backupManagerSchedule',
+      status.enabled === false
+        ? 'NONAKTIF'
+        : status.triggerReady
+          ? 'AKTIF'
+          : 'BELUM AKTIF'
+    );
+    setText(
+      '#backupManagerScheduleMeta',
+      status.enabled === false
+        ? 'Backup otomatis dimatikan'
+        : `${status.frequency === 'WEEKLY' ? 'Setiap Senin' : 'Setiap hari'} · sekitar ${String(status.hour ?? 3).padStart(2, '0')}:00 WIB`
+    );
+    setText('#backupManagerLastRestore', lastRestore.fileName || 'Belum pernah');
+    setText(
+      '#backupManagerLastRestoreMeta',
+      lastRestore.restoredAt
+        ? `${formatDateTime(lastRestore.restoredAt)} · ${lastRestore.restoredBy || '-'}`
+        : '-'
+    );
+    setText('#backupManagerCount', `${formatQuantity(backups.length)} file`);
+    setText(
+      '#backupManagerListCaption',
+      state.backupManagerLoading
+        ? 'Memuat daftar backup...'
+        : backups.length
+          ? `${backups.length} backup terbaru pada folder MERAMU Backups`
+          : 'Belum ada backup pada Google Drive'
+    );
+
+    container.replaceChildren();
+
+    if (state.backupManagerLoading && !backups.length) {
+      const loading = document.createElement('div');
+      loading.className = 'empty-state';
+      loading.innerHTML = '<p>Memuat daftar backup Google Drive...</p>';
+      container.append(loading);
+      return;
+    }
+
+    if (!backups.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.innerHTML = '<div class="empty-state-icon">↻</div><h3>Belum ada backup</h3><p>Tekan Buat Backup Sekarang untuk membuat salinan pertama.</p>';
+      container.append(empty);
+      return;
+    }
+
+    backups.forEach((backup, index) => {
+      const inspection = backup.inspection || null;
+      const card = document.createElement('article');
+      card.className = `backup-file-card ${inspection?.ready ? 'is-ready' : inspection ? 'is-invalid' : ''}`;
+
+      const identity = document.createElement('div');
+      identity.className = 'backup-file-identity';
+
+      const icon = document.createElement('span');
+      icon.className = 'backup-file-icon';
+      icon.textContent = index === 0 ? '★' : '▤';
+
+      const copy = document.createElement('div');
+      copy.className = 'backup-file-copy';
+
+      const titleLine = document.createElement('div');
+      titleLine.className = 'backup-file-title-line';
+
+      const title = document.createElement('strong');
+      title.textContent = backup.fileName || 'MERAMU Backup';
+
+      const statusPill = document.createElement('span');
+      statusPill.className = 'system-status-pill backup-file-status';
+      statusPill.dataset.tone = backupInspectionTone(inspection);
+      statusPill.textContent = inspection
+        ? inspection.ready
+          ? 'SIAP'
+          : 'BERMASALAH'
+        : 'BELUM DIPERIKSA';
+
+      titleLine.append(title, statusPill);
+
+      const meta = document.createElement('span');
+      meta.textContent =
+        `${backup.createdAt ? formatDateTime(backup.createdAt) : '-'} · ` +
+        `${formatBackupFileSize(backup)} · ${backup.ownerEmail || 'Pemilik deployment'}`;
+
+      const detail = document.createElement('small');
+      detail.textContent = inspection
+        ? `Schema ${inspection.schemaVersion || '-'} · ${inspection.sheetCount || 0} sheet · ${formatQuantity(inspection.usedCells || 0)} sel`
+        : 'Periksa backup sebelum tombol pemulihan diaktifkan.';
+
+      copy.append(titleLine, meta, detail);
+      identity.append(icon, copy);
+
+      const actions = document.createElement('div');
+      actions.className = 'backup-file-actions';
+
+      const inspectButton = document.createElement('button');
+      inspectButton.className = 'btn btn-secondary';
+      inspectButton.type = 'button';
+      inspectButton.textContent = inspection ? 'Periksa Ulang' : 'Periksa';
+      inspectButton.addEventListener('click', () => inspectBackupFromManager(backup.fileId));
+
+      const openButton = document.createElement('button');
+      openButton.className = 'btn btn-secondary';
+      openButton.type = 'button';
+      openButton.textContent = 'Buka Drive';
+      openButton.addEventListener('click', () => {
+        if (backup.openUrl) window.open(backup.openUrl, '_blank', 'noopener');
+      });
+
+      const downloadButton = document.createElement('button');
+      downloadButton.className = 'btn btn-secondary';
+      downloadButton.type = 'button';
+      downloadButton.textContent = 'Unduh XLSX';
+      downloadButton.addEventListener('click', () => {
+        if (backup.downloadUrl) window.open(backup.downloadUrl, '_blank', 'noopener');
+      });
+
+      const restoreButton = document.createElement('button');
+      restoreButton.className = 'btn btn-danger-soft';
+      restoreButton.type = 'button';
+      restoreButton.textContent = 'Pulihkan';
+      restoreButton.disabled = !inspection?.ready;
+      restoreButton.addEventListener('click', () => openBackupRestoreSheet(backup));
+
+      actions.append(inspectButton, openButton, downloadButton, restoreButton);
+      card.append(identity, actions);
+      container.append(card);
+    });
+
+    renderSelectedBackupInspection();
+  }
+
+  async function inspectBackupFromManager(fileId) {
+    if (!isCurrentAppAdmin() || state.backupManagerActionSubmitting) return;
+
+    state.backupManagerActionSubmitting = true;
+    state.selectedBackupFileId = fileId;
+    setText('#backupInspectionStatus', 'MEMERIKSA');
+    document.getElementById('backupInspectionPanel')?.removeAttribute('hidden');
+
+    try {
+      const result = await window.MeramuAPI.request(
+        'inspectBackup',
+        {fileId},
+        {token: state.session.token, timeout: 90000, retries: 0}
+      );
+
+      state.selectedBackupInspection = result;
+      showToast(
+        result.message || 'Pemeriksaan backup selesai.',
+        result.inspection?.ready ? 'success' : 'warning'
+      );
+      await loadBackupManager(true);
+      renderSelectedBackupInspection(result);
+    } catch (error) {
+      showToast(error.message || 'Backup gagal diperiksa.', 'error');
+    } finally {
+      state.backupManagerActionSubmitting = false;
+    }
+  }
+
+  function renderSelectedBackupInspection(override = null) {
+    const panel = document.getElementById('backupInspectionPanel');
+    if (!panel) return;
+
+    const result = override || state.selectedBackupInspection;
+    if (!result?.inspection) {
+      panel.hidden = true;
+      return;
+    }
+
+    const backup = result.backup || {};
+    const inspection = result.inspection || {};
+    panel.hidden = false;
+
+    setText('#backupInspectionTitle', backup.fileName || 'Backup MERAMU');
+    setText(
+      '#backupInspectionCaption',
+      inspection.ready
+        ? 'Struktur inti lengkap dan backup dapat dipilih untuk pemulihan.'
+        : 'Backup belum aman untuk dipulihkan. Periksa masalah di bawah.'
+    );
+
+    const status = document.getElementById('backupInspectionStatus');
+    if (status) {
+      status.textContent = inspection.status || (inspection.ready ? 'SIAP' : 'TIDAK SIAP');
+      status.dataset.tone = inspection.ready ? 'success' : 'error';
+    }
+
+    setText('#backupInspectionSchema', inspection.schemaVersion || 'Tidak tercatat');
+    setText('#backupInspectionVersion', inspection.appVersion || 'Tidak tercatat');
+    setText('#backupInspectionSheets', `${inspection.sheetCount || 0} / 5`);
+    setText('#backupInspectionAdmins', formatQuantity(inspection.activeAdminCount || 0));
+    setText('#backupInspectionCells', formatQuantity(inspection.usedCells || 0));
+    setText(
+      '#backupInspectionTime',
+      inspection.checkedAt ? formatDateTime(inspection.checkedAt) : '-'
+    );
+
+    const issues = document.getElementById('backupInspectionIssues');
+    const messages = [
+      ...(inspection.issues || []).map((message) => `Masalah: ${message}`),
+      ...(inspection.warnings || []).map((message) => `Catatan: ${message}`)
+    ];
+
+    if (issues) {
+      issues.hidden = messages.length === 0;
+      issues.innerHTML = messages.map((message) => `<p>${escapeHtml(message)}</p>`).join('');
+    }
+  }
+
+  async function createBackupFromManager() {
+    if (!isCurrentAppAdmin() || state.backupManagerActionSubmitting) return;
+
+    const button = document.getElementById('createBackupManagerButton');
+    state.backupManagerActionSubmitting = true;
+    setButtonLoading(button, true, 'Membuat backup...');
+
+    try {
+      const result = await window.MeramuAPI.request(
+        'createBackupNow',
+        {},
+        {token: state.session.token, timeout: 120000, retries: 0}
+      );
+
+      showToast(result.message || 'Backup berhasil dibuat.', 'success');
+      state.appSettingsLoaded = false;
+      await loadBackupManager(true);
+    } catch (error) {
+      showToast(error.message || 'Backup gagal dibuat.', 'error');
+    } finally {
+      state.backupManagerActionSubmitting = false;
+      setButtonLoading(button, false, 'Buat Backup Sekarang');
+    }
+  }
+
+  async function cleanupBackupsFromManager() {
+    if (!isCurrentAppAdmin() || state.backupManagerActionSubmitting) return;
+
+    const keepCopies = Number(state.backupManagerData?.status?.keepCopies || 30);
+    const approved = window.confirm(
+      `Pertahankan ${keepCopies} backup terbaru dan pindahkan file yang lebih lama ke Sampah Google Drive?`
+    );
+    if (!approved) return;
+
+    const button = document.getElementById('cleanupBackupManagerButton');
+    state.backupManagerActionSubmitting = true;
+    setButtonLoading(button, true, 'Membersihkan...');
+
+    try {
+      const result = await window.MeramuAPI.request(
+        'cleanupBackups',
+        {keepCopies},
+        {token: state.session.token, timeout: 90000, retries: 0}
+      );
+
+      showToast(result.message || 'Pembersihan backup selesai.', 'success');
+      await loadBackupManager(true);
+    } catch (error) {
+      showToast(error.message || 'Backup lama gagal dibersihkan.', 'error');
+    } finally {
+      state.backupManagerActionSubmitting = false;
+      setButtonLoading(button, false, 'Bersihkan File Lama');
+    }
+  }
+
+  function openBackupRestoreSheet(backup) {
+    if (!isCurrentAppAdmin() || !backup?.inspection?.ready) {
+      showToast('Periksa dan pastikan backup berstatus SIAP terlebih dahulu.', 'warning');
+      return;
+    }
+
+    state.selectedBackupFileId = backup.fileId;
+    state.selectedBackupInspection = {
+      backup,
+      inspection: backup.inspection
+    };
+
+    setText('#backupRestoreTitle', 'Pulihkan Database');
+    setText('#backupRestoreSubtitle', 'Sumber: ' + (backup.fileName || '-'));
+    setText('#backupRestoreFileName', backup.fileName || '-');
+    setText(
+      '#backupRestoreCreatedAt',
+      backup.createdAt ? formatDateTime(backup.createdAt) : '-'
+    );
+    setText('#backupRestoreSchema', backup.inspection.schemaVersion || 'Tidak tercatat');
+    setText('#backupRestoreSheets', `${backup.inspection.sheetCount || 0} / 5`);
+
+    setFieldValue('backupRestorePassword', '');
+    setFieldValue('backupRestoreConfirmationText', '');
+
+    const confirmed = document.getElementById('backupRestoreConfirmed');
+    if (confirmed) confirmed.checked = false;
+
+    setText('#backupRestoreError', '');
+    openSheet('backupRestoreSheet', 'backupRestoreBackdrop');
+
+    window.setTimeout(
+      () => document.getElementById('backupRestorePassword')?.focus(),
+      220
+    );
+  }
+
+  function closeBackupRestoreSheet(force = false) {
+    if (state.restoreBackupSubmitting && !force) return;
+    closeSheet('backupRestoreSheet', 'backupRestoreBackdrop');
+    document.body.classList.remove('sheet-is-open');
+  }
+
+  async function handleBackupRestoreSubmit(event) {
+    event.preventDefault();
+    if (!isCurrentAppAdmin() || state.restoreBackupSubmitting) return;
+
+    const fileId = state.selectedBackupFileId;
+    const password = String(
+      document.getElementById('backupRestorePassword')?.value || ''
+    );
+    const confirmationText = String(
+      document.getElementById('backupRestoreConfirmationText')?.value || ''
+    ).trim();
+    const confirmed = Boolean(
+      document.getElementById('backupRestoreConfirmed')?.checked
+    );
+    const errorElement = document.getElementById('backupRestoreError');
+    const button = document.getElementById('submitBackupRestoreButton');
+
+    if (errorElement) errorElement.textContent = '';
+
+    try {
+      if (!fileId) throw new Error('File backup belum dipilih.');
+      if (!password) throw new Error('Password Administrator wajib diisi.');
+      if (confirmationText.toUpperCase() !== 'PULIHKAN MERAMU') {
+        throw new Error('Ketik PULIHKAN MERAMU dengan tepat.');
+      }
+      if (!confirmed) {
+        throw new Error('Centang konfirmasi pemulihan terlebih dahulu.');
+      }
+
+      const finalApproval = window.confirm(
+        'Ini adalah konfirmasi terakhir. Database aktif akan diganti dan sistem membuat backup pengaman terlebih dahulu. Lanjutkan?'
+      );
+      if (!finalApproval) return;
+
+      state.restoreBackupSubmitting = true;
+      setButtonLoading(button, true, 'Memulihkan database...');
+
+      const result = await window.MeramuAPI.request(
+        'restoreBackup',
+        {
+          fileId,
+          password,
+          confirmationText,
+          confirmed: true
+        },
+        {token: state.session.token, timeout: 300000, retries: 0}
+      );
+
+      closeBackupRestoreSheet(true);
+
+      window.alert(
+        `${result.message || 'Pemulihan berhasil.'}\n\n` +
+        `Backup pengaman: ${result.safetyBackup?.fileName || '-'}\n` +
+        `Status sistem: ${result.health?.status || '-'}\n\n` +
+        'Aplikasi akan keluar. Login kembali menggunakan akun yang tersimpan pada backup.'
+      );
+
+      await logout();
+    } catch (error) {
+      if (errorElement) {
+        errorElement.textContent =
+          error.message || 'Pemulihan database gagal.';
+      }
+      shakeElement(document.getElementById('backupRestoreForm'));
+    } finally {
+      state.restoreBackupSubmitting = false;
+      setButtonLoading(button, false, 'Pulihkan Database');
+    }
   }
 
   function openAppSettingsPage() {
@@ -4782,7 +7429,7 @@
 
     const allowNegative = document.getElementById('settingAllowNegativeStock');
     if (allowNegative) allowNegative.checked = Boolean(security.allowNegativeStock);
-    setFieldValue('settingSessionHours', security.sessionHours || 6);
+    setFieldValue('settingSessionHours', security.sessionHours || 12);
     setFieldValue('settingMaxLoginAttempts', security.maxLoginAttempts || 5);
     setFieldValue('settingLoginLockMinutes', security.loginLockMinutes || 15);
 
@@ -5982,6 +8629,7 @@
       rowGap: 1.2,
       contentWidth: 52,
       logoSize: 13,
+      qrSize: 21,
       valueWeight: 800,
       logoPosition: 'CENTER',
       valueAlign: 'RIGHT',
@@ -6019,6 +8667,7 @@
       rowGap: clamp(merged.rowGap, 0.5, 3, defaults.rowGap),
       contentWidth: clamp(merged.contentWidth, 46, 54, defaults.contentWidth),
       logoSize: clamp(merged.logoSize, 8, 18, defaults.logoSize),
+      qrSize: clamp(merged.qrSize, 16, 28, defaults.qrSize),
       valueWeight: [600, 700, 800, 900].includes(Number(merged.valueWeight))
         ? Number(merged.valueWeight)
         : defaults.valueWeight,
@@ -6071,6 +8720,7 @@
     setFieldValue('productionLabelRowGap', style.rowGap);
     setFieldValue('productionLabelContentWidth', style.contentWidth);
     setFieldValue('productionLabelLogoSize', style.logoSize);
+    setFieldValue('productionLabelQrSize', style.qrSize);
     setFieldValue('productionLabelValueWeight', String(style.valueWeight));
     setFieldValue('productionLabelLogoPosition', style.logoPosition);
     setFieldValue('productionLabelValueAlign', style.valueAlign);
@@ -6087,6 +8737,7 @@
       rowGap: document.getElementById('productionLabelRowGap')?.value,
       contentWidth: document.getElementById('productionLabelContentWidth')?.value,
       logoSize: document.getElementById('productionLabelLogoSize')?.value,
+      qrSize: document.getElementById('productionLabelQrSize')?.value,
       valueWeight: document.getElementById('productionLabelValueWeight')?.value,
       logoPosition: document.getElementById('productionLabelLogoPosition')?.value,
       valueAlign: document.getElementById('productionLabelValueAlign')?.value,
@@ -6131,6 +8782,7 @@
     const brandTitle = brand?.querySelector('strong');
     const rows = document.getElementById('thermalLabelRows');
     const estimateDate = document.querySelector('#thermalLabelEstimate strong');
+    const qr = document.getElementById('productionLabelQrPreview');
 
     label.style.width = `${Math.min(58, style.contentWidth + 6)}mm`;
     label.style.fontFamily = style.fontFamily;
@@ -6146,6 +8798,10 @@
     if (brandTitle) brandTitle.style.fontSize = `${style.brandFontSize}pt`;
     if (rows) rows.style.gap = `${style.rowGap}mm`;
     if (estimateDate) estimateDate.style.fontSize = `${style.estimateFontSize}pt`;
+    if (qr) {
+      qr.style.width = `${style.qrSize}mm`;
+      qr.style.height = `${style.qrSize}mm`;
+    }
 
     label.querySelectorAll('.thermal-label-rows strong').forEach((element) => {
       element.style.fontWeight = String(style.valueWeight);
@@ -6227,7 +8883,9 @@
         ph: '-',
         brix: '-',
         starter: '-',
-        estimate: '00/00/0000'
+        estimate: '00/00/0000',
+        detailUrl: '',
+        status: '-'
       };
     }
 
@@ -6245,7 +8903,9 @@
       starter: starter === '' || starter === undefined
         ? '-'
         : `${formatQuantity(starter)} ml`,
-      estimate: formatNumericDate(productionLabelEstimateDate(batch))
+      estimate: formatNumericDate(productionLabelEstimateDate(batch)),
+      detailUrl: String(batch['QR Detail URL'] || ''),
+      status: String(batch['Status Batch'] || '-')
     };
   }
 
@@ -6315,10 +8975,82 @@
     setText('#productionLabelSummaryVolume', data.volume);
     setText('#productionLabelSummaryEstimate', data.estimate);
     setText('#productionLabelSummaryStarter', data.starter);
+    setText(
+      '#productionLabelQrCaption',
+      data.detailUrl
+        ? 'Web detail selalu mengikuti data terbaru'
+        : 'Link web belum tersedia'
+    );
+
     applyProductionLabelStylePreview();
+
+    const qrElement = document.getElementById('productionLabelQrPreview');
+    if (data.detailUrl) {
+      renderQrIntoElement(
+        qrElement,
+        data.detailUrl,
+        Math.max(100, Math.round(ensureProductionLabelStyle().qrSize * 4.4))
+      );
+    } else if (qrElement) {
+      qrElement.replaceChildren();
+      qrElement.textContent = 'QR belum tersedia';
+    }
+
+    const detailButton = document.getElementById('openProductionBatchDetailButton');
+    if (detailButton) detailButton.disabled = !data.detailUrl;
   }
 
-  function productionLabelPrintDocument(data, logoUrl, style) {
+  function openSelectedProductionBatchDetail() {
+    const data = productionLabelData(getSelectedProductionLabelBatch());
+    if (!data.detailUrl) {
+      showToast(
+        'Link detail Batch belum tersedia. Pastikan backend V2.25 sudah dideploy.',
+        'warning'
+      );
+      return;
+    }
+    window.open(data.detailUrl, '_blank', 'noopener');
+  }
+
+  function renderQrIntoElement(element, text, sizePx) {
+    renderBottlingQr(element, text, sizePx);
+  }
+
+  async function generateProductionQrDataUrl(text, size = 320) {
+    if (typeof window.QRCode !== 'function') {
+      throw new Error('Generator QR belum tersedia.');
+    }
+
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '-10000px';
+    container.style.top = '0';
+    document.body.append(container);
+
+    try {
+      new window.QRCode(container, {
+        text,
+        width: size,
+        height: size,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: window.QRCode.CorrectLevel.M
+      });
+
+      await new Promise((resolve) => window.setTimeout(resolve, 80));
+      const canvas = container.querySelector('canvas');
+      if (canvas) return canvas.toDataURL('image/png');
+
+      const image = container.querySelector('img');
+      if (image?.src) return image.src;
+
+      throw new Error('QR gagal dibuat.');
+    } finally {
+      container.remove();
+    }
+  }
+
+  function productionLabelPrintDocument(data, logoUrl, qrDataUrl, style) {
     const separatorText = productionLabelSeparatorText(style);
     const separatorClass = style.separatorStyle === 'SOLID' ? 'separator solid' : 'separator';
     const logoAlign = productionLabelAlignment(style.logoPosition);
@@ -6454,6 +9186,33 @@
       letter-spacing: .4mm;
     }
 
+    .qr-block {
+      display: grid;
+      justify-items: center;
+      gap: .7mm;
+      padding: .4mm 0;
+      text-align: center;
+    }
+
+    .qr-block img {
+      display: block;
+      width: ${style.qrSize}mm;
+      height: ${style.qrSize}mm;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .qr-block strong {
+      font-size: 8.5pt;
+      font-weight: 900;
+      letter-spacing: .15mm;
+    }
+
+    .qr-block span {
+      font-size: 7pt;
+      font-weight: 700;
+    }
+
     @media print {
       html,
       body {
@@ -6492,12 +9251,20 @@
     </section>
 
     <div class="${separatorClass}">${escapeHtml(separatorText)}</div>
+
+    <section class="qr-block">
+      <img src="${escapeHtml(qrDataUrl)}" alt="QR Detail Batch">
+      <strong>SCAN DETAIL BATCH</strong>
+      <span>Data produksi terbaru</span>
+    </section>
+
+    <div class="${separatorClass}">${escapeHtml(separatorText)}</div>
   </article>
 </body>
 </html>`;
   }
 
-  function printProductionLabel58mm() {
+  async function printProductionLabel58mm() {
     const batch = getSelectedProductionLabelBatch();
     if (!batch) {
       showToast('Belum ada batch produksi yang dapat dicetak.', 'warning');
@@ -6505,34 +9272,636 @@
     }
 
     const data = productionLabelData(batch);
+    if (!data.detailUrl) {
+      showToast(
+        'QR Detail Batch belum tersedia. Deploy backend V2.25 lalu muat ulang data.',
+        'warning'
+      );
+      return;
+    }
+
     const style = ensureProductionLabelStyle();
     const logoUrl = new URL('assets/images/logo-meramu.png', window.location.href).href;
-    const printWindow = window.open('', '_blank', 'width=420,height=720');
+    const printWindow = window.open('', '_blank', 'width=420,height=780');
 
     if (!printWindow) {
       showToast('Popup cetak diblokir browser. Izinkan popup untuk aplikasi MERAMU.', 'warning');
       return;
     }
 
-    printWindow.document.open();
-    printWindow.document.write(productionLabelPrintDocument(data, logoUrl, style));
+    printWindow.document.write(
+      '<!doctype html><title>Menyiapkan Label</title>' +
+      '<p style="font-family:Arial;padding:24px">Menyiapkan QR dan label produksi...</p>'
+    );
     printWindow.document.close();
 
-    const runPrint = () => {
-      window.setTimeout(() => {
-        printWindow.focus();
-        printWindow.print();
-      }, 180);
-    };
+    const button = document.getElementById('printProductionLabelButton');
+    setButtonLoading(button, true, 'Menyiapkan QR...');
 
-    const image = printWindow.document.querySelector('img');
-    if (image && !image.complete) {
-      image.addEventListener('load', runPrint, {once: true});
-      image.addEventListener('error', runPrint, {once: true});
-      window.setTimeout(runPrint, 1200);
-    } else {
-      runPrint();
+    try {
+      const qrDataUrl = await generateProductionQrDataUrl(data.detailUrl, 360);
+
+      printWindow.document.open();
+      printWindow.document.write(
+        productionLabelPrintDocument(data, logoUrl, qrDataUrl, style)
+      );
+      printWindow.document.close();
+
+      const runPrint = () => {
+        window.setTimeout(() => {
+          printWindow.focus();
+          printWindow.print();
+        }, 220);
+      };
+
+      const images = Array.from(printWindow.document.images);
+      const pending = images.filter((image) => !image.complete);
+
+      if (!pending.length) {
+        runPrint();
+      } else {
+        let remaining = pending.length;
+        const done = () => {
+          remaining -= 1;
+          if (remaining <= 0) runPrint();
+        };
+
+        pending.forEach((image) => {
+          image.addEventListener('load', done, {once: true});
+          image.addEventListener('error', done, {once: true});
+        });
+
+        window.setTimeout(runPrint, 1800);
+      }
+
+      showToast(
+        `Label ${data.batchId} dengan QR web siap dicetak.`,
+        'success'
+      );
+    } catch (error) {
+      printWindow.close();
+      showToast(
+        error.message || 'QR label produksi gagal disiapkan.',
+        'error'
+      );
+    } finally {
+      setButtonLoading(button, false, 'Cetak Label 58 mm');
     }
+  }
+
+
+  function defaultBottlingLabelStyle() {
+    return {
+      layout: 'STANDARD',
+      fontFamily: 'Arial, Helvetica, sans-serif',
+      bodyFontSize: 9.5,
+      variantFontSize: 22,
+      logoSize: 11,
+      qrSize: 22,
+      rowGap: 1.05,
+      contentWidth: 52,
+      logoPosition: 'CENTER',
+      separatorStyle: 'EQUAL',
+      showQuality: 'YES',
+      labelCase: 'NORMAL'
+    };
+  }
+
+  function normalizeBottlingLabelStyle(style) {
+    const defaults = defaultBottlingLabelStyle();
+    const source = {...defaults, ...(style || {})};
+    const number = (value, min, max, fallback) => {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? Math.min(max, Math.max(min, parsed)) : fallback;
+    };
+    const fonts = [
+      'Arial, Helvetica, sans-serif',
+      "'Courier New', Courier, monospace",
+      'Verdana, Geneva, sans-serif',
+      'Tahoma, Geneva, sans-serif',
+      "'Trebuchet MS', Arial, sans-serif",
+      'Georgia, serif'
+    ];
+    return {
+      layout: ['STANDARD', 'COMPACT', 'QR_TOP'].includes(source.layout) ? source.layout : defaults.layout,
+      fontFamily: fonts.includes(source.fontFamily) ? source.fontFamily : defaults.fontFamily,
+      bodyFontSize: number(source.bodyFontSize, 7, 15, defaults.bodyFontSize),
+      variantFontSize: number(source.variantFontSize, 14, 30, defaults.variantFontSize),
+      logoSize: number(source.logoSize, 7, 18, defaults.logoSize),
+      qrSize: number(source.qrSize, 16, 30, defaults.qrSize),
+      rowGap: number(source.rowGap, .5, 3, defaults.rowGap),
+      contentWidth: number(source.contentWidth, 46, 54, defaults.contentWidth),
+      logoPosition: ['LEFT', 'CENTER', 'RIGHT'].includes(source.logoPosition)
+        ? source.logoPosition : defaults.logoPosition,
+      separatorStyle: ['EQUAL', 'DASH', 'SOLID'].includes(source.separatorStyle)
+        ? source.separatorStyle : defaults.separatorStyle,
+      showQuality: ['YES', 'NO'].includes(source.showQuality) ? source.showQuality : defaults.showQuality,
+      labelCase: ['NORMAL', 'UPPERCASE'].includes(source.labelCase) ? source.labelCase : defaults.labelCase
+    };
+  }
+
+  function ensureBottlingLabelStyle() {
+    if (state.bottlingLabelStyle) return state.bottlingLabelStyle;
+    try {
+      const saved = localStorage.getItem('meramu_bottling_label_style_58mm');
+      state.bottlingLabelStyle = normalizeBottlingLabelStyle(saved ? JSON.parse(saved) : null);
+    } catch {
+      state.bottlingLabelStyle = defaultBottlingLabelStyle();
+    }
+    return state.bottlingLabelStyle;
+  }
+
+  function saveBottlingLabelStyle() {
+    try {
+      localStorage.setItem(
+        'meramu_bottling_label_style_58mm',
+        JSON.stringify(state.bottlingLabelStyle)
+      );
+      setText('#bottlingLabelStyleStatus', 'Pengaturan tersimpan otomatis di perangkat ini.');
+    } catch {
+      setText('#bottlingLabelStyleStatus', 'Pengaturan aktif, tetapi browser tidak dapat menyimpannya.');
+    }
+  }
+
+  function populateBottlingLabelStyleControls() {
+    const style = ensureBottlingLabelStyle();
+    const values = {
+      bottlingLabelLayout: style.layout,
+      bottlingLabelFontFamily: style.fontFamily,
+      bottlingLabelBodyFontSize: style.bodyFontSize,
+      bottlingLabelVariantFontSize: style.variantFontSize,
+      bottlingLabelLogoSize: style.logoSize,
+      bottlingLabelQrSize: style.qrSize,
+      bottlingLabelRowGap: style.rowGap,
+      bottlingLabelContentWidth: style.contentWidth,
+      bottlingLabelLogoPosition: style.logoPosition,
+      bottlingLabelSeparatorStyle: style.separatorStyle,
+      bottlingLabelShowQuality: style.showQuality,
+      bottlingLabelLabelCase: style.labelCase
+    };
+    Object.entries(values).forEach(([id, value]) => setFieldValue(id, value));
+  }
+
+  function handleBottlingLabelStyleChange() {
+    state.bottlingLabelStyle = normalizeBottlingLabelStyle({
+      layout: document.getElementById('bottlingLabelLayout')?.value,
+      fontFamily: document.getElementById('bottlingLabelFontFamily')?.value,
+      bodyFontSize: document.getElementById('bottlingLabelBodyFontSize')?.value,
+      variantFontSize: document.getElementById('bottlingLabelVariantFontSize')?.value,
+      logoSize: document.getElementById('bottlingLabelLogoSize')?.value,
+      qrSize: document.getElementById('bottlingLabelQrSize')?.value,
+      rowGap: document.getElementById('bottlingLabelRowGap')?.value,
+      contentWidth: document.getElementById('bottlingLabelContentWidth')?.value,
+      logoPosition: document.getElementById('bottlingLabelLogoPosition')?.value,
+      separatorStyle: document.getElementById('bottlingLabelSeparatorStyle')?.value,
+      showQuality: document.getElementById('bottlingLabelShowQuality')?.value,
+      labelCase: document.getElementById('bottlingLabelLabelCase')?.value
+    });
+    saveBottlingLabelStyle();
+    renderBottlingLabelPreview();
+  }
+
+  function resetBottlingLabelStyle() {
+    state.bottlingLabelStyle = defaultBottlingLabelStyle();
+    saveBottlingLabelStyle();
+    populateBottlingLabelStyleControls();
+    renderBottlingLabelPreview();
+    showToast('Tampilan Label Bottling dikembalikan ke desain standar.', 'success');
+  }
+
+  function openBottlingLabelPage() {
+    if (!['ADMIN', 'PRODUKSI'].includes(currentApplicationRole())) {
+      showToast('Label Bottling hanya tersedia untuk Administrator dan Produksi.', 'warning');
+      return;
+    }
+    navigate('label-bottling');
+  }
+
+  function bottlingLabelRows() {
+    return [...(state.bottlings || [])]
+      .filter((row) => row?.['Bottling ID'] && normalizeBottlingVariant(row.Varian) !== 'STARTER')
+      .sort((a, b) => parseAnyDate(b.Timestamp || b.Tanggal) - parseAnyDate(a.Timestamp || a.Tanggal));
+  }
+
+  function selectedBottlingLabelRow() {
+    const rows = bottlingLabelRows();
+    return rows.find((row) =>
+      String(row['Bottling ID']) === String(state.selectedBottlingLabelId)
+    ) || rows[0] || null;
+  }
+
+  function bottlingLabelData(row) {
+    if (!row) {
+      return {
+        bottlingId: '-', batchId: '-', variant: 'VARIAN', volume: '250 ml',
+        bottlingDate: '00/00/0000', expiryDate: '00/00/0000',
+        batchDate: '00/00/0000', ph: '-', brix: '-', quality: '- / -',
+        availableLabels: 1, qrText: 'MERAMU KOMBUCHA'
+      };
+    }
+
+    const batch = (state.batches || []).find((item) =>
+      String(item['Batch ID'] || '') === String(row['Batch ID'] || '')
+    );
+    const rawPh = batch?.['pH Akhir'] !== '' && batch?.['pH Akhir'] !== undefined
+      ? batch?.['pH Akhir'] : batch?.['pH Awal'];
+    const rawBrix = batch?.['Brix Akhir'] !== '' && batch?.['Brix Akhir'] !== undefined
+      ? batch?.['Brix Akhir'] : batch?.['Brix Awal'];
+    const ph = rawPh === '' || rawPh === undefined ? '-' : formatQuantity(rawPh);
+    const brix = rawBrix === '' || rawBrix === undefined ? '-' : formatQuantity(rawBrix);
+    const bottleMl = Math.max(1, Math.round(toNumber(state.initialData?.settings?.BOTTLE_ML) || 250));
+    const data = {
+      bottlingId: String(row['Bottling ID'] || '-'),
+      batchId: String(row['Batch ID'] || '-'),
+      variant: variantTitle(normalizeBottlingVariant(row.Varian)),
+      volume: `${bottleMl} ml`,
+      bottlingDate: formatNumericDate(row.Tanggal),
+      expiryDate: formatNumericDate(row['Tanggal EXP']),
+      batchDate: formatNumericDate(batch?.['Tanggal F1']),
+      ph, brix,
+      quality: `${ph} / ${brix}`,
+      availableLabels: Math.max(1, Math.round(toNumber(row.Hasil) || 1))
+    };
+    data.qrText = [
+      'MERAMU KOMBUCHA',
+      `Bottling ID: ${data.bottlingId}`,
+      `Batch ID: ${data.batchId}`,
+      `Varian: ${data.variant}`,
+      `Volume: ${data.volume}`,
+      `Tanggal Produksi F1: ${data.batchDate}`,
+      `Tanggal Bottling: ${data.bottlingDate}`,
+      `pH: ${data.ph}`,
+      `Brix: ${data.brix}`,
+      `Kedaluwarsa: ${data.expiryDate}`,
+      'Status: Produk Bottling'
+    ].join('\n');
+    return data;
+  }
+
+  function normalizeBottlingLabelQuantity() {
+    const input = document.getElementById('bottlingLabelQuantity');
+    if (!input) return 1;
+    const max = Math.max(1, Math.min(500, bottlingLabelData(selectedBottlingLabelRow()).availableLabels));
+    input.max = String(max);
+    const value = Math.max(1, Math.min(max, Math.round(toNumber(input.value) || 1)));
+    input.value = String(value);
+    return value;
+  }
+
+  function renderBottlingLabelPage() {
+    const select = document.getElementById('bottlingLabelSelect');
+    if (!select) return;
+
+    ensureBottlingLabelStyle();
+    populateBottlingLabelStyleControls();
+
+    const rows = bottlingLabelRows();
+    select.replaceChildren();
+
+    if (!rows.length) {
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = 'Belum ada hasil bottling produk';
+      select.append(option);
+      select.disabled = true;
+      document.getElementById('printBottlingLabelButton').disabled = true;
+      setText('#bottlingLabelStatus', 'BELUM ADA BOTTLING');
+      renderBottlingLabelPreview();
+      renderBottlingLabelHistory();
+      return;
+    }
+
+    rows.forEach((row) => {
+      const option = document.createElement('option');
+      option.value = String(row['Bottling ID']);
+      option.textContent =
+        `${row['Bottling ID']} · ${variantTitle(normalizeBottlingVariant(row.Varian))} · ` +
+        `${formatNumericDate(row.Tanggal)} · ${formatQuantity(row.Hasil)} botol`;
+      select.append(option);
+    });
+
+    if (!rows.some((row) => String(row['Bottling ID']) === String(state.selectedBottlingLabelId))) {
+      state.selectedBottlingLabelId = String(rows[0]['Bottling ID']);
+    }
+    select.value = state.selectedBottlingLabelId;
+    select.disabled = false;
+    document.getElementById('printBottlingLabelButton').disabled = false;
+    setText('#bottlingLabelStatus', 'SIAP DICETAK');
+    normalizeBottlingLabelQuantity();
+    renderBottlingLabelPreview();
+    renderBottlingLabelHistory();
+  }
+
+  function bottlingSeparatorText(style) {
+    if (style.separatorStyle === 'DASH') return '--------------------';
+    if (style.separatorStyle === 'SOLID') return '';
+    return '====================';
+  }
+
+  function renderBottlingQr(element, text, sizePx) {
+    if (!element) return;
+    element.replaceChildren();
+    if (typeof window.QRCode !== 'function') {
+      element.textContent = 'QR tidak tersedia';
+      return;
+    }
+    new window.QRCode(element, {
+      text, width: sizePx, height: sizePx,
+      colorDark: '#000000', colorLight: '#ffffff',
+      correctLevel: window.QRCode.CorrectLevel.M
+    });
+    element.querySelectorAll('canvas, img').forEach((node) => {
+      node.style.width = '100%';
+      node.style.height = '100%';
+      node.style.display = 'block';
+    });
+  }
+
+  function renderBottlingLabelPreview() {
+    const data = bottlingLabelData(selectedBottlingLabelRow());
+    const style = ensureBottlingLabelStyle();
+    const label = document.getElementById('thermalBottlingLabel');
+    if (!label) return;
+
+    setText('#bottlingLabelPreviewVariant', data.variant.toUpperCase());
+    setText('#bottlingLabelPreviewVolume', data.volume);
+    setText('#bottlingLabelPreviewBatch', data.batchId);
+    setText('#bottlingLabelPreviewId', data.bottlingId);
+    setText('#bottlingLabelPreviewDate', data.bottlingDate);
+    setText('#bottlingLabelPreviewExpiry', data.expiryDate);
+    setText('#bottlingLabelPreviewQuality', data.quality);
+    setText('#bottlingLabelSummaryVariant', data.variant);
+    setText('#bottlingLabelSummaryVolume', data.volume);
+    setText('#bottlingLabelSummaryDate', data.bottlingDate);
+    setText('#bottlingLabelSummaryExpiry', data.expiryDate);
+
+    label.classList.remove('layout-standard', 'layout-compact', 'layout-qr-top');
+    label.classList.add(`layout-${style.layout.toLowerCase().replace('_', '-')}`);
+    label.style.width = `${Math.min(58, style.contentWidth + 6)}mm`;
+    label.style.fontFamily = style.fontFamily;
+    label.style.fontSize = `${style.bodyFontSize}pt`;
+
+    const brand = document.getElementById('bottlingLabelBrand');
+    const logo = brand?.querySelector('img');
+    const variant = document.getElementById('bottlingLabelPreviewVariant');
+    const rows = document.getElementById('bottlingLabelRows');
+    const qr = document.getElementById('bottlingLabelQrPreview');
+    const alignment = style.logoPosition === 'LEFT' ? 'left' : style.logoPosition === 'RIGHT' ? 'right' : 'center';
+
+    if (brand) brand.style.textAlign = alignment;
+    if (logo) {
+      logo.style.width = `${style.logoSize}mm`;
+      logo.style.height = `${style.logoSize}mm`;
+      logo.style.marginLeft = style.logoPosition === 'LEFT' ? '0' : 'auto';
+      logo.style.marginRight = style.logoPosition === 'RIGHT' ? '0' : 'auto';
+    }
+    if (variant) variant.style.fontSize = `${style.variantFontSize}pt`;
+    if (rows) rows.style.gap = `${style.rowGap}mm`;
+    if (qr) {
+      qr.style.width = `${style.qrSize}mm`;
+      qr.style.height = `${style.qrSize}mm`;
+    }
+
+    label.querySelectorAll('.bottling-label-quality-row').forEach((row) => {
+      row.hidden = style.showQuality !== 'YES';
+    });
+    label.querySelectorAll('.bottling-label-rows span').forEach((span) => {
+      span.style.textTransform = style.labelCase === 'UPPERCASE' ? 'uppercase' : 'none';
+    });
+    label.querySelectorAll('[data-bottling-label-separator]').forEach((separator) => {
+      separator.textContent = bottlingSeparatorText(style);
+      separator.classList.toggle('is-solid', style.separatorStyle === 'SOLID');
+    });
+
+    renderBottlingQr(qr, data.qrText, Math.max(90, Math.round(style.qrSize * 4.3)));
+    normalizeBottlingLabelQuantity();
+  }
+
+  async function bottlingQrDataUrl(text, size = 320) {
+    if (typeof window.QRCode !== 'function') throw new Error('Generator QR belum tersedia.');
+    const holder = document.createElement('div');
+    holder.style.position = 'fixed';
+    holder.style.left = '-10000px';
+    document.body.append(holder);
+    try {
+      new window.QRCode(holder, {
+        text, width: size, height: size,
+        colorDark: '#000000', colorLight: '#ffffff',
+        correctLevel: window.QRCode.CorrectLevel.M
+      });
+      await new Promise((resolve) => setTimeout(resolve, 80));
+      const canvas = holder.querySelector('canvas');
+      if (canvas) return canvas.toDataURL('image/png');
+      const image = holder.querySelector('img');
+      if (image?.src) return image.src;
+      throw new Error('QR gagal dibuat.');
+    } finally {
+      holder.remove();
+    }
+  }
+
+  function bottlingLabelPrintHtml(data, logoUrl, qrUrl, style, quantity) {
+    const separator = bottlingSeparatorText(style);
+    const separatorClass = style.separatorStyle === 'SOLID' ? 'separator solid' : 'separator';
+    const layout = `layout-${style.layout.toLowerCase().replace('_', '-')}`;
+    const alignment = style.logoPosition === 'LEFT' ? 'left' : style.logoPosition === 'RIGHT' ? 'right' : 'center';
+    const logoLeft = style.logoPosition === 'LEFT' ? '0' : 'auto';
+    const logoRight = style.logoPosition === 'RIGHT' ? '0' : 'auto';
+    const textTransform = style.labelCase === 'UPPERCASE' ? 'uppercase' : 'none';
+    const quality = style.showQuality === 'YES'
+      ? `<div><span>pH / Brix</span><strong>${escapeHtml(data.quality)}</strong></div>`
+      : '';
+
+    const label = `
+      <article class="label ${layout}">
+        <header class="brand"><img src="${escapeHtml(logoUrl)}"><strong>MERAMU</strong></header>
+        <section class="product"><strong>${escapeHtml(data.variant.toUpperCase())}</strong><span>${escapeHtml(data.volume)}</span></section>
+        <div class="${separatorClass}">${escapeHtml(separator)}</div>
+        <div class="body">
+          <section class="rows">
+            <div><span>Batch ID</span><strong>${escapeHtml(data.batchId)}</strong></div>
+            <div><span>Bottling ID</span><strong>${escapeHtml(data.bottlingId)}</strong></div>
+            <div><span>Tgl Bottling</span><strong>${escapeHtml(data.bottlingDate)}</strong></div>
+            <div><span>EXP</span><strong>${escapeHtml(data.expiryDate)}</strong></div>
+            ${quality}
+          </section>
+          <section class="qr"><img src="${escapeHtml(qrUrl)}"><span>Scan info batch</span></section>
+        </div>
+        <div class="${separatorClass}">${escapeHtml(separator)}</div>
+      </article>`;
+
+    return `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Label ${escapeHtml(data.bottlingId)}</title>
+      <style>
+        @page{size:58mm auto;margin:0}*{box-sizing:border-box}html,body{width:58mm;min-width:58mm;margin:0;padding:0;background:#fff;color:#000}
+        body{font-family:${style.fontFamily};font-size:${style.bodyFontSize}pt;line-height:1.25;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+        .label{width:${style.contentWidth}mm;max-width:54mm;margin:0 auto;padding:2.4mm 0 3mm;break-after:page;page-break-after:always}
+        .label:last-child{break-after:auto;page-break-after:auto}.brand{text-align:${alignment}}.brand img{display:block;width:${style.logoSize}mm;height:${style.logoSize}mm;margin:0 ${logoRight} .7mm ${logoLeft};object-fit:contain;filter:grayscale(1) contrast(1.35)}
+        .brand strong{display:block;font-size:14pt;font-weight:900;letter-spacing:.45mm}.product{margin-top:1mm;text-align:center}.product strong{display:block;font-size:${style.variantFontSize}pt;font-weight:900;line-height:1.05}.product span{display:block;margin-top:.7mm;font-size:11pt;font-weight:800}
+        .separator{overflow:hidden;margin:1.5mm 0;font-family:"Courier New",monospace;font-size:9.5pt;font-weight:700;line-height:1;text-align:center;white-space:nowrap}.separator.solid{height:0;border-top:1px solid #000;font-size:0}
+        .body{display:flex;flex-direction:column;gap:1.8mm}.rows{display:grid;gap:${style.rowGap}mm}.rows>div{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:1.5mm}.rows span{text-align:left;text-transform:${textTransform}}.rows strong{max-width:29mm;overflow-wrap:anywhere;text-align:right;font-weight:800}
+        .qr{display:grid;justify-items:center;gap:.7mm;text-align:center}.qr img{display:block;width:${style.qrSize}mm;height:${style.qrSize}mm;image-rendering:pixelated}.qr span{font-size:7.5pt;font-weight:700}
+        .layout-compact .body{display:grid;grid-template-columns:minmax(0,1fr) ${style.qrSize}mm;align-items:center;gap:1.4mm}.layout-compact .rows>div{display:block;margin-bottom:.8mm}.layout-compact .rows span,.layout-compact .rows strong{display:block;max-width:none;text-align:left}.layout-compact .rows span{font-size:7pt}.layout-compact .qr span{font-size:6.5pt}
+        .layout-qr-top .qr{order:-1}
+      </style></head><body>${Array.from({length: quantity}, () => label).join('')}</body></html>`;
+  }
+
+  async function printBottlingLabels58mm() {
+    const row = selectedBottlingLabelRow();
+    if (!row || state.bottlingLabelPrinting) {
+      if (!row) showToast('Belum ada hasil bottling yang dapat dicetak.', 'warning');
+      return;
+    }
+    const quantity = normalizeBottlingLabelQuantity();
+    const data = bottlingLabelData(row);
+    const style = ensureBottlingLabelStyle();
+    const popup = window.open('', '_blank', 'width=430,height=760');
+    if (!popup) {
+      showToast('Popup cetak diblokir browser. Izinkan popup untuk MERAMU.', 'warning');
+      return;
+    }
+
+    popup.document.write('<!doctype html><title>Menyiapkan Label</title><p style="font-family:Arial;padding:24px">Menyiapkan QR dan label...</p>');
+    popup.document.close();
+    state.bottlingLabelPrinting = true;
+    const button = document.getElementById('printBottlingLabelButton');
+    setButtonLoading(button, true, 'Menyiapkan label...');
+
+    try {
+      const logo = new URL('assets/images/logo-meramu.png', window.location.href).href;
+      const qr = await bottlingQrDataUrl(data.qrText);
+      let historySaved = true;
+      try {
+        const result = await window.MeramuAPI.request('recordBottlingLabelPrint', {
+          bottlingId: data.bottlingId,
+          quantity
+        }, {token: state.session.token, timeout: 45000});
+        state.bottlingLabelHistory.unshift({
+          printId: result.printId || result.reference || '',
+          bottlingId: data.bottlingId,
+          batchId: data.batchId,
+          variant: data.variant.toUpperCase(),
+          quantity,
+          volume: data.volume,
+          expirationDateText: data.expiryDate,
+          printedAt: result.printedAt || new Date().toISOString(),
+          printedBy: result.printedBy || state.session?.user?.username || '',
+          status: 'SUKSES'
+        });
+        state.bottlingLabelHistory = state.bottlingLabelHistory.slice(0, 50);
+        state.bottlingLabelHistoryLoaded = true;
+        renderBottlingLabelHistory();
+      } catch (error) {
+        historySaved = false;
+        console.warn(error);
+      }
+
+      popup.document.open();
+      popup.document.write(bottlingLabelPrintHtml(data, logo, qr, style, quantity));
+      popup.document.close();
+      const printNow = () => setTimeout(() => { popup.focus(); popup.print(); }, 220);
+      const pending = Array.from(popup.document.images).filter((image) => !image.complete);
+      if (!pending.length) printNow();
+      else {
+        let count = pending.length;
+        const done = () => { count -= 1; if (count <= 0) printNow(); };
+        pending.forEach((image) => {
+          image.addEventListener('load', done, {once:true});
+          image.addEventListener('error', done, {once:true});
+        });
+        setTimeout(printNow, 1800);
+      }
+
+      showToast(
+        historySaved
+          ? `${quantity} label ${data.variant} siap dicetak.`
+          : `${quantity} label siap dicetak, tetapi riwayat belum tersimpan.`,
+        historySaved ? 'success' : 'warning'
+      );
+    } catch (error) {
+      popup.close();
+      showToast(error.message || 'Label Bottling gagal disiapkan.', 'error');
+    } finally {
+      state.bottlingLabelPrinting = false;
+      setButtonLoading(button, false, 'Cetak Label 58 mm');
+    }
+  }
+
+  async function loadBottlingLabelHistory(force = false) {
+    if (!state.session || state.bottlingLabelHistoryLoading) return;
+    if (state.bottlingLabelHistoryLoaded && !force) {
+      renderBottlingLabelHistory();
+      return;
+    }
+    state.bottlingLabelHistoryLoading = true;
+    renderBottlingLabelHistory();
+    try {
+      const result = await window.MeramuAPI.request(
+        'bottling-label-history',
+        {limit: 30},
+        {token: state.session.token, method: 'GET', timeout: 30000}
+      );
+      state.bottlingLabelHistory = Array.isArray(result.data) ? result.data : [];
+      state.bottlingLabelHistoryLoaded = true;
+    } catch (error) {
+      showToast(error.message || 'Riwayat label gagal dimuat.', 'warning');
+    } finally {
+      state.bottlingLabelHistoryLoading = false;
+      renderBottlingLabelHistory();
+    }
+  }
+
+  function renderBottlingLabelHistory() {
+    const container = document.getElementById('bottlingLabelHistoryList');
+    if (!container) return;
+    container.replaceChildren();
+
+    if (state.bottlingLabelHistoryLoading) {
+      const loading = document.createElement('div');
+      loading.className = 'empty-state';
+      loading.innerHTML = '<p>Memuat riwayat cetak label...</p>';
+      container.append(loading);
+      return;
+    }
+
+    if (!state.bottlingLabelHistory.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.innerHTML = '<div class="empty-state-icon">▦</div><h3>Belum ada riwayat cetak</h3><p>Riwayat muncul setelah Label Bottling dicetak.</p>';
+      container.append(empty);
+      return;
+    }
+
+    state.bottlingLabelHistory.slice(0, 30).forEach((entry) => {
+      const card = document.createElement('article');
+      card.className = 'bottling-label-history-entry';
+      const copy = document.createElement('div');
+      copy.className = 'bottling-label-history-copy';
+      copy.innerHTML = `
+        <strong>${escapeHtml(entry.bottlingId || 'Label Bottling')}</strong>
+        <span>${escapeHtml(variantTitle(entry.variant || ''))} · ${formatQuantity(entry.quantity || 1)} label · ${escapeHtml(entry.printedBy || '-')}</span>
+        <small>${escapeHtml(entry.printedAt ? formatDateTime(entry.printedAt) : '-')} · ${escapeHtml(entry.printId || '-')}</small>`;
+      const button = document.createElement('button');
+      button.className = 'btn btn-secondary';
+      button.type = 'button';
+      button.textContent = 'Cetak Ulang';
+      button.addEventListener('click', () => {
+        const row = bottlingLabelRows().find((item) =>
+          String(item['Bottling ID']) === String(entry.bottlingId)
+        );
+        if (!row) {
+          showToast('Data bottling untuk riwayat ini tidak ditemukan.', 'warning');
+          return;
+        }
+        state.selectedBottlingLabelId = String(row['Bottling ID']);
+        setFieldValue('bottlingLabelSelect', state.selectedBottlingLabelId);
+        setFieldValue('bottlingLabelQuantity', Math.max(1, Math.round(toNumber(entry.quantity) || 1)));
+        renderBottlingLabelPreview();
+        document.querySelector('.bottling-label-page')?.scrollIntoView({behavior:'smooth', block:'start'});
+        showToast('Data cetak ulang sudah dipilih.', 'info');
+      });
+      card.append(copy, button);
+      container.append(card);
+    });
   }
 
   function stockGroupConfig(group) {
@@ -8772,6 +12141,586 @@
     return `"${text.replace(/"/g, '""')}"`;
   }
 
+  function openCashClosingPage() {
+    if (!['ADMIN', 'KASIR'].includes(currentApplicationRole())) {
+      showToast('Tutup Kas hanya tersedia untuk Administrator dan Kasir.', 'warning');
+      return;
+    }
+    navigate('tutup-kas');
+  }
+
+  function cashClosingStatusLabel(status) {
+    const labels = {
+      MENUNGGU: 'Menunggu Persetujuan',
+      DISETUJUI: 'Disetujui',
+      DIBUKA_KEMBALI: 'Dibuka Kembali'
+    };
+    return labels[String(status || '').toUpperCase()] || 'Belum Ditutup';
+  }
+
+  function cashClosingStatusTone(status) {
+    const normalized = String(status || '').toUpperCase();
+    if (normalized === 'DISETUJUI') return 'success';
+    if (normalized === 'MENUNGGU') return 'warning';
+    if (normalized === 'DIBUKA_KEMBALI') return 'danger';
+    return 'info';
+  }
+
+  function cashClosingSelectedDate() {
+    return document.getElementById('cashClosingDate')?.value || localDateInputValue(new Date());
+  }
+
+  function cashClosingSelectedCashier() {
+    return document.getElementById('cashClosingCashier')?.value || state.session?.user?.username || '';
+  }
+
+  function setCashClosingLoadStatus(message, tone = 'info') {
+    const element = document.getElementById('cashClosingLoadStatus');
+    if (!element) return;
+    element.textContent = message;
+    element.className = `status-chip ${tone}`;
+  }
+
+  function cashClosingMoneyValue(id) {
+    return Math.max(0, toNumber(document.getElementById(id)?.value));
+  }
+
+  function setCashClosingMoneyInput(id, value, blankWhenZero = false) {
+    const element = document.getElementById(id);
+    if (!element) return;
+    const amount = Math.max(0, toNumber(value));
+    element.value = blankWhenZero && amount === 0 ? '' : numberFormatter.format(amount);
+  }
+
+  function handleCashClosingMoneyInput(event) {
+    const input = event.currentTarget;
+    const digits = String(input.value || '').replace(/[^0-9]/g, '');
+    const amount = digits ? Number(digits) : 0;
+    input.value = digits ? numberFormatter.format(amount) : '';
+    updateCashClosingCalculation();
+  }
+
+  function cashClosingExpectedValues() {
+    const summary = state.cashClosingData?.summary || {};
+    const openingBalance = cashClosingMoneyValue('cashClosingOpeningBalance');
+    const physicalCash = cashClosingMoneyValue('cashClosingPhysicalCash');
+    const expectedCash = openingBalance + toNumber(summary.cashSales) - toNumber(summary.cashExpenses);
+    return {
+      openingBalance,
+      physicalCash,
+      expectedCash,
+      difference: physicalCash - expectedCash
+    };
+  }
+
+  function updateCashClosingCalculation() {
+    const values = cashClosingExpectedValues();
+    const physicalRaw = String(document.getElementById('cashClosingPhysicalCash')?.value || '').trim();
+    setText('#cashClosingExpectedCash', formatCurrency(values.expectedCash));
+    setText('#cashClosingDifference', physicalRaw ? formatSignedCurrency(values.difference) : 'Rp0');
+
+    const card = document.getElementById('cashClosingDifferenceCard');
+    const caption = document.getElementById('cashClosingDifferenceCaption');
+    let tone = 'neutral';
+    let text = 'Kas fisik belum diisi';
+    if (physicalRaw) {
+      if (Math.abs(values.difference) < 0.5) {
+        tone = 'balanced';
+        text = 'Kas sesuai dengan perhitungan sistem';
+      } else if (values.difference > 0) {
+        tone = 'surplus';
+        text = 'Kas fisik lebih besar dari sistem';
+      } else {
+        tone = 'shortage';
+        text = 'Kas fisik lebih kecil dari sistem';
+      }
+    }
+    if (card) card.dataset.tone = tone;
+    if (caption) caption.textContent = text;
+  }
+
+  function populateCashClosingCashiers() {
+    const select = document.getElementById('cashClosingCashier');
+    if (!select) return;
+    const data = state.cashClosingData || {};
+    const selected = data.selectedCashier?.username || state.session?.user?.username || '';
+    select.replaceChildren();
+
+    (data.cashiers || []).forEach((user) => {
+      const option = document.createElement('option');
+      option.value = user.username;
+      option.textContent = `${user.name} · ${formatRole(user.role)}`;
+      select.append(option);
+    });
+
+    if (!select.options.length) {
+      const option = document.createElement('option');
+      option.value = selected;
+      option.textContent = state.session?.user?.name || selected;
+      select.append(option);
+    }
+    select.value = selected;
+    select.disabled = currentApplicationRole() !== 'ADMIN';
+  }
+
+  function renderCashClosingPage() {
+    const page = document.querySelector('[data-page="tutup-kas"]');
+    if (!page) return;
+
+    const data = state.cashClosingData;
+    if (!data) {
+      const dateInput = document.getElementById('cashClosingDate');
+      if (dateInput && !dateInput.value) dateInput.value = localDateInputValue(new Date());
+      setCashClosingLoadStatus('Belum dimuat', 'info');
+      return;
+    }
+
+    const dateInput = document.getElementById('cashClosingDate');
+    if (dateInput && document.activeElement !== dateInput) dateInput.value = data.selectedDate || localDateInputValue(new Date());
+    populateCashClosingCashiers();
+
+    const summary = data.summary || {};
+    setText('#cashClosingCashSales', formatCurrency(summary.cashSales));
+    setText('#cashClosingQrisSales', formatCurrency(summary.qrisSales));
+    setText('#cashClosingTransferSales', formatCurrency(summary.transferSales));
+    setText('#cashClosingOtherSales', formatCurrency(toNumber(summary.debitSales) + toNumber(summary.otherNonCashSales)));
+    setText('#cashClosingCashExpenses', formatCurrency(summary.cashExpenses));
+    setText('#cashClosingTotalSales', formatCurrency(summary.totalSales));
+    setText('#cashClosingSaleCount', `${formatQuantity(summary.saleTransactions)} transaksi`);
+    setText('#cashClosingRoleChip', currentApplicationRole() === 'ADMIN' ? 'Administrator' : 'Kasir');
+    setText('#cashClosingOpeningSuggestion', `Saran saldo awal: ${formatCurrency(data.suggestedOpeningBalance)}`);
+
+    const active = data.activeClosure;
+    if (active) {
+      setCashClosingMoneyInput('cashClosingOpeningBalance', active.openingBalance);
+      setCashClosingMoneyInput('cashClosingPhysicalCash', active.physicalCash);
+      setFieldValue('cashClosingNote', active.note || '');
+    } else {
+      setCashClosingMoneyInput('cashClosingOpeningBalance', data.suggestedOpeningBalance);
+      setCashClosingMoneyInput('cashClosingPhysicalCash', 0, true);
+      setFieldValue('cashClosingNote', '');
+      const confirmed = document.getElementById('cashClosingConfirmed');
+      if (confirmed) confirmed.checked = false;
+    }
+
+    renderCashClosingStatus();
+    renderCashClosingHistory();
+    updateCashClosingCalculation();
+    applyCashClosingFormState();
+    setCashClosingLoadStatus('Data siap', 'success');
+  }
+
+  function applyCashClosingFormState() {
+    const active = state.cashClosingData?.activeClosure;
+    const fields = ['cashClosingOpeningBalance', 'cashClosingPhysicalCash', 'cashClosingNote', 'cashClosingConfirmed'];
+    fields.forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) element.disabled = Boolean(active);
+    });
+    const submit = document.getElementById('submitCashClosingButton');
+    if (submit) {
+      submit.disabled = Boolean(active) || state.cashClosingSubmitting;
+      submit.textContent = active ? 'Kas Sudah Ditutup' : 'Tutup Kas Sekarang';
+    }
+  }
+
+  function renderCashClosingStatus() {
+    const data = state.cashClosingData || {};
+    const active = data.activeClosure;
+    const card = document.getElementById('cashClosingStatusCard');
+    const meta = document.getElementById('cashClosingStatusMeta');
+    const detailButton = document.getElementById('cashClosingActiveDetailButton');
+    const printButton = document.getElementById('cashClosingActivePrintButton');
+
+    if (!active) {
+      if (card) card.dataset.status = 'OPEN';
+      setText('#cashClosingStatusTitle', 'Belum ditutup');
+      setText('#cashClosingStatusDescription', 'Masukkan kas fisik untuk menyelesaikan penutupan.');
+      if (meta) meta.replaceChildren();
+      if (detailButton) detailButton.hidden = true;
+      if (printButton) printButton.hidden = true;
+      return;
+    }
+
+    if (card) card.dataset.status = active.status;
+    setText('#cashClosingStatusTitle', cashClosingStatusLabel(active.status));
+    setText(
+      '#cashClosingStatusDescription',
+      active.status === 'MENUNGGU'
+        ? 'Menunggu pemeriksaan dan persetujuan Administrator.'
+        : 'Kas terkunci. Buka kembali sebelum mencatat transaksi baru.'
+    );
+    if (meta) {
+      meta.innerHTML = `
+        <div><span>Nomor</span><strong>${escapeHtml(active.reference)}</strong></div>
+        <div><span>Kas fisik</span><strong>${escapeHtml(formatCurrency(active.physicalCash))}</strong></div>
+        <div><span>Selisih</span><strong>${escapeHtml(formatSignedCurrency(active.difference))}</strong></div>
+        <div><span>Ditutup</span><strong>${escapeHtml(formatDateTime(active.closedAt))}</strong></div>
+      `;
+    }
+    if (detailButton) detailButton.hidden = false;
+    if (printButton) printButton.hidden = false;
+  }
+
+  async function loadCashClosingData(force = false) {
+    if (!state.session?.token || state.cashClosingLoading) return;
+    const pageActive = state.page === 'tutup-kas';
+    if (!pageActive && !force) return;
+
+    const date = cashClosingSelectedDate();
+    const cashier = cashClosingSelectedCashier();
+    state.cashClosingLoading = true;
+    setCashClosingLoadStatus('Memuat...', 'info');
+
+    try {
+      const result = await window.MeramuAPI.request(
+        'cash-closing',
+        {date, cashier},
+        {token: state.session.token, timeout: 45000}
+      );
+      state.cashClosingData = result.data || null;
+      renderCashClosingPage();
+    } catch (error) {
+      setCashClosingLoadStatus('Gagal dimuat', 'error');
+      showToast(error.message || 'Data Tutup Kas gagal dimuat.', 'error');
+    } finally {
+      state.cashClosingLoading = false;
+    }
+  }
+
+  async function handleCashClosingSubmit(event) {
+    event.preventDefault();
+    if (state.cashClosingSubmitting) return;
+    const errorElement = document.getElementById('cashClosingFormError');
+    const button = document.getElementById('submitCashClosingButton');
+    const confirmed = Boolean(document.getElementById('cashClosingConfirmed')?.checked);
+    const values = cashClosingExpectedValues();
+    const note = String(document.getElementById('cashClosingNote')?.value || '').trim();
+    if (errorElement) errorElement.textContent = '';
+
+    try {
+      if (!String(document.getElementById('cashClosingPhysicalCash')?.value || '').trim()) {
+        throw new Error('Kas fisik wajib diisi. Isi 0 apabila memang tidak ada uang tunai.');
+      }
+      if (!confirmed) throw new Error('Centang konfirmasi perhitungan kas terlebih dahulu.');
+      if (Math.abs(values.difference) >= 0.5 && note.length < 5) {
+        throw new Error('Catatan wajib diisi saat terdapat selisih kas.');
+      }
+
+      state.cashClosingSubmitting = true;
+      applyCashClosingFormState();
+      setButtonLoading(button, true, 'Menyimpan...');
+      const selectedDate = cashClosingSelectedDate();
+      const selectedCashier = cashClosingSelectedCashier();
+      const result = await window.MeramuAPI.request(
+        'saveCashClosing',
+        {
+          date: selectedDate,
+          cashier: selectedCashier,
+          openingBalance: values.openingBalance,
+          physicalCash: values.physicalCash,
+          note,
+          confirmed: true
+        },
+        {token: state.session.token, timeout: 60000}
+      );
+      showToast(result.message || 'Tutup Kas berhasil disimpan.', 'success');
+      await refreshAppData({showToastOnError: false});
+      setFieldValue('cashClosingDate', selectedDate);
+      setFieldValue('cashClosingCashier', selectedCashier);
+      await loadCashClosingData(true);
+    } catch (error) {
+      if (errorElement) errorElement.textContent = error.message || 'Tutup Kas gagal disimpan.';
+      shakeElement(document.getElementById('cashClosingForm'));
+    } finally {
+      state.cashClosingSubmitting = false;
+      setButtonLoading(button, false, 'Tutup Kas Sekarang');
+      applyCashClosingFormState();
+    }
+  }
+
+  function cashClosingHistoryRecords() {
+    const records = Array.isArray(state.cashClosingData?.history) ? state.cashClosingData.history : [];
+    return records.filter((record) => {
+      return !state.cashClosingHistoryStatus || record.status === state.cashClosingHistoryStatus;
+    });
+  }
+
+  function renderCashClosingHistory() {
+    const list = document.getElementById('cashClosingHistoryList');
+    if (!list) return;
+    const records = cashClosingHistoryRecords();
+    setText('#cashClosingHistoryCaption', `${formatQuantity(records.length)} penutupan ditemukan`);
+    list.replaceChildren();
+
+    if (!records.length) {
+      const empty = document.createElement('div');
+      empty.className = 'card empty-state';
+      empty.innerHTML = '<p>Belum ada riwayat Tutup Kas sesuai filter.</p>';
+      list.append(empty);
+      return;
+    }
+
+    records.forEach((record) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `card cash-closing-history-card status-${String(record.status || '').toLowerCase()}`;
+      button.innerHTML = `
+        <div class="cash-closing-history-main">
+          <span class="cash-closing-history-date">${escapeHtml(formatDate(record.date))}</span>
+          <strong>${escapeHtml(record.cashierName || record.cashierUsername)}</strong>
+          <small>${escapeHtml(record.reference)}</small>
+        </div>
+        <div class="cash-closing-history-values">
+          <div><span>Kas fisik</span><strong>${escapeHtml(formatCurrency(record.physicalCash))}</strong></div>
+          <div><span>Selisih</span><strong class="${toNumber(record.difference) === 0 ? 'is-balanced' : 'is-difference'}">${escapeHtml(formatSignedCurrency(record.difference))}</strong></div>
+        </div>
+        <span class="cash-closing-history-status ${cashClosingStatusTone(record.status)}">${escapeHtml(cashClosingStatusLabel(record.status))}</span>
+        <span class="chevron" aria-hidden="true"></span>
+      `;
+      button.addEventListener('click', () => openCashClosingDetail(record.reference));
+      list.append(button);
+    });
+  }
+
+  function selectedCashClosingRecord() {
+    const records = state.cashClosingData?.history || [];
+    return records.find((record) => record.reference === state.selectedCashClosingReference) ||
+      (state.cashClosingData?.activeClosure?.reference === state.selectedCashClosingReference
+        ? state.cashClosingData.activeClosure
+        : null);
+  }
+
+  function openCashClosingDetail(reference) {
+    const record = (state.cashClosingData?.history || []).find((item) => item.reference === reference) ||
+      (state.cashClosingData?.activeClosure?.reference === reference ? state.cashClosingData.activeClosure : null);
+    if (!record) return;
+    state.selectedCashClosingReference = reference;
+    setText('#cashClosingDetailTitle', record.reference);
+    setText('#cashClosingDetailSubtitle', `${formatDate(record.date)} · ${record.cashierName}`);
+    const body = document.getElementById('cashClosingDetailBody');
+    if (body) body.innerHTML = buildCashClosingDetail(record);
+
+    const approve = document.getElementById('approveCashClosingButton');
+    const reopen = document.getElementById('reopenCashClosingButton');
+    const admin = isCurrentAppAdmin();
+    if (approve) approve.hidden = !(admin && record.status === 'MENUNGGU');
+    if (reopen) reopen.hidden = !(admin && record.status !== 'DIBUKA_KEMBALI');
+    openSheet('cashClosingDetailSheet', 'cashClosingDetailBackdrop');
+  }
+
+  function closeCashClosingDetail() {
+    closeSheet('cashClosingDetailSheet', 'cashClosingDetailBackdrop');
+    state.selectedCashClosingReference = '';
+    document.body.classList.remove('sheet-is-open');
+  }
+
+  function buildCashClosingDetail(record) {
+    const audit = record.status === 'DISETUJUI'
+      ? `<div><span>Disetujui oleh</span><strong>${escapeHtml(record.approvedBy || '-')}</strong></div><div><span>Waktu persetujuan</span><strong>${escapeHtml(formatDateTime(record.approvedAt))}</strong></div>`
+      : record.status === 'DIBUKA_KEMBALI'
+        ? `<div><span>Dibuka oleh</span><strong>${escapeHtml(record.reopenedBy || '-')}</strong></div><div><span>Alasan buka kembali</span><strong>${escapeHtml(record.reopenReason || '-')}</strong></div>`
+        : `<div><span>Status persetujuan</span><strong>Menunggu Administrator</strong></div>`;
+
+    return `
+      <section class="cash-closing-detail-hero status-${String(record.status).toLowerCase()}">
+        <span>${escapeHtml(cashClosingStatusLabel(record.status))}</span>
+        <strong>${escapeHtml(formatSignedCurrency(record.difference))}</strong>
+        <small>Selisih kas</small>
+      </section>
+      <section class="cash-closing-detail-grid">
+        <div><span>Tanggal</span><strong>${escapeHtml(formatDate(record.date))}</strong></div>
+        <div><span>Pengguna kas</span><strong>${escapeHtml(record.cashierName || record.cashierUsername)}</strong></div>
+        <div><span>Saldo awal</span><strong>${escapeHtml(formatCurrency(record.openingBalance))}</strong></div>
+        <div><span>Penjualan tunai</span><strong>${escapeHtml(formatCurrency(record.cashSales))}</strong></div>
+        <div><span>QRIS</span><strong>${escapeHtml(formatCurrency(record.qrisSales))}</strong></div>
+        <div><span>Transfer</span><strong>${escapeHtml(formatCurrency(record.transferSales))}</strong></div>
+        <div><span>Non-tunai lain</span><strong>${escapeHtml(formatCurrency(toNumber(record.debitSales) + toNumber(record.otherNonCashSales)))}</strong></div>
+        <div><span>Pengeluaran tunai</span><strong>${escapeHtml(formatCurrency(record.cashExpenses))}</strong></div>
+        <div><span>Kas seharusnya</span><strong>${escapeHtml(formatCurrency(record.expectedCash))}</strong></div>
+        <div><span>Kas fisik</span><strong>${escapeHtml(formatCurrency(record.physicalCash))}</strong></div>
+        <div><span>Transaksi penjualan</span><strong>${escapeHtml(formatQuantity(record.saleTransactions))}</strong></div>
+        <div><span>Ditutup oleh</span><strong>${escapeHtml(record.closedBy || '-')}</strong></div>
+        ${audit}
+      </section>
+      <section class="transaction-detail-note">
+        <span>Catatan penutupan</span>
+        <p>${escapeHtml(record.note || 'Tidak ada catatan.')}</p>
+      </section>
+    `;
+  }
+
+  async function approveSelectedCashClosing() {
+    const record = selectedCashClosingRecord();
+    if (!record || !isCurrentAppAdmin() || state.cashClosingActionSubmitting) return;
+    if (!window.confirm(`Setujui Tutup Kas ${record.reference}?`)) return;
+    const button = document.getElementById('approveCashClosingButton');
+    const selectedDate = record.date;
+    const selectedCashier = record.cashierUsername;
+    try {
+      state.cashClosingActionSubmitting = true;
+      setButtonLoading(button, true, 'Menyetujui...');
+      const result = await window.MeramuAPI.request(
+        'approveCashClosing',
+        {reference: record.reference},
+        {token: state.session.token, timeout: 60000}
+      );
+      closeCashClosingDetail();
+      showToast(result.message || 'Tutup Kas berhasil disetujui.', 'success');
+      await refreshAppData({showToastOnError: false});
+      setFieldValue('cashClosingDate', selectedDate);
+      setFieldValue('cashClosingCashier', selectedCashier);
+      await loadCashClosingData(true);
+    } catch (error) {
+      showToast(error.message || 'Persetujuan Tutup Kas gagal.', 'error');
+    } finally {
+      state.cashClosingActionSubmitting = false;
+      setButtonLoading(button, false, 'Setujui');
+    }
+  }
+
+  function openCashClosingReopenSheet() {
+    const record = selectedCashClosingRecord();
+    if (!record || !isCurrentAppAdmin()) return;
+    setFieldValue('cashClosingReopenReason', '');
+    setText('#cashClosingReopenError', '');
+    closeSheet('cashClosingDetailSheet', 'cashClosingDetailBackdrop');
+    openSheet('cashClosingReopenSheet', 'cashClosingReopenBackdrop');
+    window.setTimeout(() => document.getElementById('cashClosingReopenReason')?.focus(), 200);
+  }
+
+  function closeCashClosingReopenSheet() {
+    if (state.cashClosingActionSubmitting) return;
+    closeSheet('cashClosingReopenSheet', 'cashClosingReopenBackdrop');
+    const record = selectedCashClosingRecord();
+    if (record) openSheet('cashClosingDetailSheet', 'cashClosingDetailBackdrop');
+    else document.body.classList.remove('sheet-is-open');
+  }
+
+  async function handleCashClosingReopenSubmit(event) {
+    event.preventDefault();
+    const record = selectedCashClosingRecord();
+    if (!record || !isCurrentAppAdmin() || state.cashClosingActionSubmitting) return;
+    const reason = String(document.getElementById('cashClosingReopenReason')?.value || '').trim();
+    const errorElement = document.getElementById('cashClosingReopenError');
+    const button = document.getElementById('submitCashClosingReopen');
+    const selectedDate = record.date;
+    const selectedCashier = record.cashierUsername;
+    if (errorElement) errorElement.textContent = '';
+
+    try {
+      if (reason.length < 10) throw new Error('Alasan buka kembali minimal 10 karakter.');
+      state.cashClosingActionSubmitting = true;
+      setButtonLoading(button, true, 'Membuka...');
+      const result = await window.MeramuAPI.request(
+        'reopenCashClosing',
+        {reference: record.reference, reason},
+        {token: state.session.token, timeout: 60000}
+      );
+      closeSheet('cashClosingReopenSheet', 'cashClosingReopenBackdrop');
+      closeSheet('cashClosingDetailSheet', 'cashClosingDetailBackdrop');
+      state.selectedCashClosingReference = '';
+      showToast(result.message || 'Tutup Kas berhasil dibuka kembali.', 'success');
+      await refreshAppData({showToastOnError: false});
+      setFieldValue('cashClosingDate', selectedDate);
+      setFieldValue('cashClosingCashier', selectedCashier);
+      await loadCashClosingData(true);
+    } catch (error) {
+      if (errorElement) errorElement.textContent = error.message || 'Kas gagal dibuka kembali.';
+      shakeElement(document.getElementById('cashClosingReopenForm'));
+    } finally {
+      state.cashClosingActionSubmitting = false;
+      setButtonLoading(button, false, 'Buka Kembali Kas');
+    }
+  }
+
+  function cashClosingPrintDocument(record, logoUrl) {
+    return `<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Tutup Kas ${escapeHtml(record.reference)}</title>
+  <style>
+    @page { size: 58mm auto; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body { width: 58mm; min-width: 58mm; margin: 0; padding: 0; background: #fff; color: #000; }
+    body { padding: 2.5mm 3mm 4mm; font-family: Arial, Helvetica, sans-serif; font-size: 9.5pt; line-height: 1.3; }
+    .receipt { width: 52mm; margin: 0 auto; }
+    .brand { text-align: center; }
+    .brand img { display: block; width: 12mm; height: 12mm; margin: 0 auto 1mm; object-fit: contain; filter: grayscale(1) contrast(1.35); }
+    .brand strong { display: block; font-size: 15pt; font-weight: 900; letter-spacing: .5mm; }
+    .brand span { display: block; margin-top: .5mm; font-size: 9pt; font-weight: 800; }
+    .sep { overflow: hidden; margin: 1.5mm 0; font-family: "Courier New", monospace; font-size: 9pt; font-weight: 700; text-align: center; white-space: nowrap; }
+    .meta, .rows { display: grid; gap: .9mm; }
+    .row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2mm; align-items: baseline; }
+    .row strong { max-width: 29mm; text-align: right; overflow-wrap: anywhere; }
+    .total { padding: 1mm 0; font-size: 10pt; font-weight: 800; }
+    .difference { padding: 1.3mm 0; font-size: 12pt; font-weight: 900; }
+    .status { margin-top: 1mm; text-align: center; font-weight: 900; }
+    .note { margin-top: 1.5mm; padding-top: 1.5mm; border-top: 1px dashed #000; font-size: 8.5pt; }
+    .signature { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 8mm; text-align: center; font-size: 8pt; }
+    .signature div::before { content: ''; display: block; border-top: 1px solid #000; margin-bottom: 1mm; }
+  </style>
+</head>
+<body>
+  <article class="receipt">
+    <header class="brand">
+      <img src="${escapeHtml(logoUrl)}" alt="Logo MERAMU">
+      <strong>MERAMU</strong>
+      <span>TUTUP KAS HARIAN</span>
+    </header>
+    <div class="sep">====================</div>
+    <section class="meta">
+      <div class="row"><span>Tanggal</span><strong>${escapeHtml(formatNumericDate(record.date))}</strong></div>
+      <div class="row"><span>Kasir</span><strong>${escapeHtml(record.cashierName || record.cashierUsername)}</strong></div>
+      <div class="row"><span>No. Tutup Kas</span><strong>${escapeHtml(record.reference)}</strong></div>
+      <div class="row"><span>Waktu Tutup</span><strong>${escapeHtml(formatDateTime(record.closedAt))}</strong></div>
+    </section>
+    <div class="sep">====================</div>
+    <section class="rows">
+      <div class="row"><span>Saldo Awal</span><strong>${escapeHtml(formatCurrency(record.openingBalance))}</strong></div>
+      <div class="row"><span>Penjualan Tunai</span><strong>${escapeHtml(formatCurrency(record.cashSales))}</strong></div>
+      <div class="row"><span>QRIS</span><strong>${escapeHtml(formatCurrency(record.qrisSales))}</strong></div>
+      <div class="row"><span>Transfer</span><strong>${escapeHtml(formatCurrency(record.transferSales))}</strong></div>
+      <div class="row"><span>Non-Tunai Lain</span><strong>${escapeHtml(formatCurrency(toNumber(record.debitSales) + toNumber(record.otherNonCashSales)))}</strong></div>
+      <div class="row"><span>Pengeluaran Tunai</span><strong>-${escapeHtml(formatCurrency(record.cashExpenses))}</strong></div>
+      <div class="row total"><span>Kas Seharusnya</span><strong>${escapeHtml(formatCurrency(record.expectedCash))}</strong></div>
+      <div class="row total"><span>Kas Fisik</span><strong>${escapeHtml(formatCurrency(record.physicalCash))}</strong></div>
+      <div class="row difference"><span>Selisih Kas</span><strong>${escapeHtml(formatSignedCurrency(record.difference))}</strong></div>
+    </section>
+    <div class="sep">====================</div>
+    <div class="status">${escapeHtml(cashClosingStatusLabel(record.status).toUpperCase())}</div>
+    <div class="note"><strong>Catatan:</strong><br>${escapeHtml(record.note || '-')}</div>
+    <div class="signature"><div>Kasir</div><div>Administrator</div></div>
+    <div class="sep">====================</div>
+  </article>
+</body>
+</html>`;
+  }
+
+  function printCashClosing58mm(record) {
+    if (!record) return;
+    const logoUrl = new URL('assets/images/logo-meramu.png', window.location.href).href;
+    const printWindow = window.open('', '_blank', 'width=420,height=760');
+    if (!printWindow) {
+      showToast('Popup cetak diblokir browser. Izinkan popup untuk MERAMU.', 'warning');
+      return;
+    }
+    printWindow.document.open();
+    printWindow.document.write(cashClosingPrintDocument(record, logoUrl));
+    printWindow.document.close();
+    const runPrint = () => window.setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+    }, 180);
+    const image = printWindow.document.querySelector('img');
+    if (image && !image.complete) {
+      image.addEventListener('load', runPrint, {once: true});
+      image.addEventListener('error', runPrint, {once: true});
+      window.setTimeout(runPrint, 1200);
+    } else runPrint();
+  }
+
   function openTransactionHistoryPage() {
     navigate('riwayat-transaksi');
     renderTransactionHistory();
@@ -9889,11 +13838,11 @@
 
     const navigationPage = page === 'riwayat-produksi'
       ? 'produksi'
-      : page === 'riwayat-transaksi'
+      : page === 'riwayat-transaksi' || page === 'tutup-kas'
         ? 'transaksi'
         : page === 'stok-detail'
           ? 'stok'
-          : page === 'laporan' || page === 'master-item' || page === 'master-resep' || page === 'label-print' || page === 'pengaturan'
+          : page === 'laporan' || page === 'master-item' || page === 'master-resep' || page === 'label-print' || page === 'label-bottling' || page === 'backup-pemulihan' || page === 'notifikasi' || page === 'perangkat-sesi' || page === 'stok-lot' || page === 'qr-kulkas' || page === 'pengaturan'
             ? 'lainnya'
             : page;
 
@@ -9923,6 +13872,10 @@
 
     if (page === 'riwayat-produksi') renderProductionHistory();
     if (page === 'riwayat-transaksi') renderTransactionHistory();
+    if (page === 'tutup-kas') {
+      renderCashClosingPage();
+      loadCashClosingData();
+    }
     if (page === 'laporan') {
       populateReportCategoryOptions();
       renderReportsPage();
@@ -9938,6 +13891,30 @@
     }
     if (page === 'label-print') {
       renderProductionLabelPage();
+    }
+    if (page === 'label-bottling') {
+      renderBottlingLabelPage();
+      loadBottlingLabelHistory();
+    }
+    if (page === 'backup-pemulihan') {
+      renderBackupManager();
+      loadBackupManager();
+    }
+    if (page === 'perangkat-sesi') {
+      renderDeviceSessions();
+      loadDeviceSessions();
+    }
+    if (page === 'notifikasi') {
+      renderOperationalAlerts();
+      loadOperationalAlerts();
+    }
+    if (page === 'stok-lot') {
+      renderLotStockPage();
+      loadLotStock();
+    }
+    if (page === 'qr-kulkas') {
+      renderFridgeManagerPage();
+      loadFridgeManager();
     }
     if (page === 'pengaturan') {
       renderAppSettingsTabs();
@@ -10244,7 +14221,7 @@
   }
 
   function isSessionError(error) {
-    return ['AUTH_EXPIRED', 'ACCOUNT_DISABLED'].includes(String(error?.code || '')) ||
+    return ['AUTH_EXPIRED', 'ACCOUNT_DISABLED', 'SESSION_REVOKED', 'SESSION_IDLE_EXPIRED', 'SESSION_ABSOLUTE_EXPIRED'].includes(String(error?.code || '')) ||
       /sesi|login kembali|session/i.test(String(error?.message || ''));
   }
 
